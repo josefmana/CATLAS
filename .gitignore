@@ -1,3 +1,7 @@
+# Manually added
+_resources/
+_outputs/*.pdf
+
 # History files
 .Rhistory
 .Rapp.history
