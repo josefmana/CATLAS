@@ -5,7 +5,8 @@ author: Josef "Joe" Mana
 format:
   pdf:
     toc: true
-bibliography: references.bib
+bibliography: bibliography.bib
+csl: apa.csl
 ---
 
 {{< pagebreak >}}
@@ -14,7 +15,7 @@ bibliography: references.bib
 
 Associative blocking refers to the attenuation of learning about a cue when it is accompanied by another cue that has already been established to reliably predict an outcome [@beesley2011; @paskewitz2020].
 
-Behavioural studies combined with eye-tracking have demonstrated that blocking occurs in human associative learning and that it can be accounted for by learned *in*attention to the blocked cue [@kruschke2005; @beesley2011; @lepelley2007; @wills2007]. Two candidate mechanisms have been proposed to explain this phenomenon: rapid **attentional shifts**, whereby redirecting attention away from the blocked cue improves learning, and **attentional competition**, whereby cues compete for a limited attentional resource [@kruschke2005; @paskewitz2020].
+Behavioural studies combined with eye-tracking have demonstrated that blocking occurs in human associative learning and that it can be accounted for by learned *in*attention to the blocked cue [@kruschke2005; @beesley2011; @lepelley2007; @wills2007]. Two candidate mechanisms have been proposed to explain this phenomenon: rapid **attentional shifts**, whereby redirecting attention away from the blocked cue improves learning, and **attentional competition**, whereby cues vie for a limited attentional resource [@kruschke2005; @paskewitz2020].
 
 However, no definitive experiment capable of discriminating between these two proposed mechanisms has yet been conducted. Using simulations, @paskewitz2020 derived an experimental design that could, in principle, adjudicate between the two accounts.
 

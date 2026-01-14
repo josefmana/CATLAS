@@ -1,0 +1,4 @@
+# Disqualify the following formats from tracking:
+*.pages
+*.pdf
+_*

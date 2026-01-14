@@ -1,6 +1,5 @@
 # Manually added
-_resources/
-_outputs/*.pdf
+resources/
 
 # History files
 .Rhistory
