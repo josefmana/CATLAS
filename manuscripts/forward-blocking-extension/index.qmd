@@ -1,0 +1,129 @@
+---
+title: Disentangling Attentional Shift and Attentional Competition Accounts of Associative Blocking
+subtitle: Replication and Extension of Beesley & Le Pelley ([2011](https://doi.org/10.1037/a0019526))
+authors:
+  - name: Josef Mana
+    id: jm
+    orcid: 0000-0002-7817-3978
+    email: mana@psu.cas.cz
+    affiliation:
+      - name: Institute of Psychology of the Czech Academy of Sciences
+        department: Cognitive Psychology
+        city: Prague
+        address: Pod Vodárenskou věží 4, Prague 18200
+        country: Czech Republic
+    roles: [conceptualization, data curation] 
+    corresponding: true
+abstract: >
+  The abstract will go here ...
+keywords:
+  - Attention
+  - Learning
+  - Blocking
+echo: false
+warnings: false
+---
+
+```{r}
+#| label: envir
+#| output: false
+
+library(tidyverse)
+library(gt)
+#library(patchwork)
+devtools::load_all("../../../catlasr")
+devtools::load_all("../../../../mathpsychr")
+```
+
+## Preamble
+
+Associative blocking refers to the attenuation of learning about a cue when it is accompanied by another cue that has already been established to reliably predict an outcome [@beesley2011; @paskewitz2020].
+
+Behavioural studies combined with eye-tracking have demonstrated that blocking occurs in human associative learning and that it can be accounted for by learned *in*attention to the blocked cue [@kruschke2005; @beesley2011; @lepelley2007; @wills2007]. Two candidate mechanisms have been proposed to explain this phenomenon: rapid **attentional shifts**, whereby redirecting attention away from the blocked cue improves learning, and **attentional competition**, whereby cues vie for a limited attentional resource [@kruschke2005; @paskewitz2020].
+
+However, no definitive experiment capable of discriminating between these two proposed mechanisms has yet been conducted. Using simulations, @paskewitz2020 derived an experimental design that could, in principle, adjudicate between the two accounts.
+
+The primary aims of this project are to:
+
+1. replicate the findings of @beesley2011 in a large sample, and
+2. design and implement an extension of this paradigm that allows for direct comparison between the attentional shift and attentional competition accounts of blocking, drawing on the theoretical analysis by @paskewitz2020.
+
+The secondary aims of this project are to:
+
+* improve data handling using more psychometrically principled methods that go beyond those typically employed in the existing literature, and
+* conduct a formal causal analysis of the experimental design to address unresolved questions concerning inferences about the phenomenon of blocking derived from the current paradigm.
+
+## Study Design
+
+### Replication
+
+@tbl-blocking-original shows the experimental design employed by @beesley2011.
+
+```{r}
+#| label: tbl-blocking-original
+#| tbl-cap: "Associational blocking experimental design as used by @beesley2011"
+
+tibble(
+  stage_1_cue = c("A", "C", "E", "G", "I", "L", "O", "R"),
+  stage_1_out = rep(c(rep(1, 2), rep(2, 2)), 2),
+  stage_2_cue = c("AB", "CD", "EF", "GH", "JK", "MN", "PQ", "ST"),
+  stage_2_out = rep(c(rep(1, 2), rep(2, 2)), 2),
+  stage_3_cue = c("BK", "DN", "FQ", "HT", rep(NA, 4)),
+  stage_3_out = c(rep(3:4, 2), rep(NA, 4)),
+  test_cue = c("BT", "DQ", "FN", "HK", "BN", "DK", "FT", "HQ"),
+  test_out = "?",
+  test_pref = rep(4:3, 4)
+) |>
+  gt() |>
+  apa_style() |>
+  sub_missing(missing_text = "") |>
+  cols_align(align = "center") |>
+  tab_spanner(label = "Stage 1", columns = starts_with("stage_1")) |>
+  tab_spanner(label = "Stage 2", columns = starts_with("stage_2")) |>
+  tab_spanner(label = "Stage 3", columns = starts_with("stage_3")) |>
+  tab_spanner(label = "Test", columns = starts_with("test")) |>
+  cols_label(
+    ends_with("cue") ~ "Cues",
+    ends_with("out") ~ "Outcome",
+    ends_with("pref") ~ "Preferred"
+  )
+```
+
+### Extension
+
+@tbl-blocking-extension shows the experimental design of @beesley2011 after changes .
+
+```{r}
+#| label: tbl-blocking-extension
+#| tbl-cap: "Associational blocking experimental design proposed by @paskewitz2020"
+
+tibble(
+  stage_1_cue = c("A", "C", "E", "G", "I", "L", "O", "R"),
+  stage_1_out = rep(c(rep(1, 2), rep(2, 2)), 2),
+  stage_2_cue = c("AB", "CD", "EF", "GH", "JK", "MN", "PQ", "ST"),
+  stage_2_out = rep(c(rep(1, 2), rep(2, 2)), 2),
+  stage_3_cue = c("BU", "DV", "FW", "HX", rep(NA, 4)),
+  stage_3_out = c(rep(3:4, 2), rep(NA, 4)),
+  test_cue = c("BX", "DW", "FV", "HU", "BV", "DU", "FX", "HW"),
+  test_out = "?",
+  test_pred_shift = rep(3:4, 4),
+  test_pred_comp = rep(4:3, 4)
+) |>
+  gt() |>
+  apa_style() |>
+  sub_missing(missing_text = "") |>
+  cols_align(align = "center") |>
+  tab_spanner(label = "Stage 1", columns = starts_with("stage_1")) |>
+  tab_spanner(label = "Stage 2", columns = starts_with("stage_2")) |>
+  tab_spanner(label = "Stage 3", columns = starts_with("stage_3")) |>
+  tab_spanner(label = "Model Predictions", columns = contains("pred")) |>
+  tab_spanner(label = "Test", columns = starts_with("test")) |>
+  cols_label(
+    ends_with("cue") ~ "Cues",
+    ends_with("out") ~ "Outcome",
+    ends_with("shift") ~ "Shifting (RSWAC)",
+    ends_with("comp") ~ "Competition\n(CompAct)"
+  )
+```
+
+## References

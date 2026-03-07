@@ -1,6 +1,5 @@
-# catlas
-
-**C**onditioning **A**s a **T**heory of **L**earned **A**ttention, **S**emantics and more
+# CATLAS
+## **C**onditioning **A**s a **T**heory of **L**earned **A**ttention, **S**emantics and more
 
 This repository serves as a central hub for projects related to my work on
 **associative learning theories of attention, schema induction**, and potentially
@@ -9,7 +8,7 @@ The overarching aim is to develop and evaluate theoretical and computational acc
 of how learned associations shape attentional allocation and the acquisition of
 structured knowledge.
 
-## Inspirations
+### Inspirations
 
 * **Paskewitz & Jones (2023)**  
 Present model of *derived attention* based on Bayesian hierarchical regression, accounting
@@ -22,3 +21,17 @@ findings. <https://doi.org/10.1037/bul0000064>
 * **Foster & Jones (2017)**  
 Introduce a model of schema induction guided by reinforcement learning.
 <https://doi.org/10.48550/arXiv.1712.10070>
+
+
+### Manuscripts
+
+This repository contains Quarto manuscripts for the CATLAS research program:
+
+- Extension of forward blocking (under development)
+- ...
+
+### Related infrastructure
+
+- Theory-dependent R code lives in [{catlasr}](https://github.com/josefmana/catlasr.git)
+- Theory-agnostic mathematical psychology machinery implemented in R lives in
+[{mathpsychr}](https://github.com/josefmana/mathpsychr.git)

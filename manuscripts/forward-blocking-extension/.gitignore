@@ -1,0 +1,45 @@
+# R / RStudio
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+
+# renv (optional)
+renv/library/
+renv/staging/
+renv/python/
+
+# Quarto
+/_manuscript/
+/.quarto/
+*_files/
+**/*.quarto_ipynb
+
+# Rendered outputs
+*.html
+*.pdf
+*.docx
+
+# Quarto execution cache
+*_cache/
+*_freeze/
+
+# LaTeX intermediates
+*.aux
+*.log
+*.out
+*.toc
+*.lot
+*.lof
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*~
+*.tmp
+*.swp

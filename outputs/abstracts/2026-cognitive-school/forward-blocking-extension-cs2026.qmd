@@ -1,0 +1,26 @@
+---
+title: "Disentangling Attentional Shift and Attentional Competition Accounts of Associative Blocking: A Project Proposal"
+format:
+  docx:
+    reference-doc: ../../common/templates/reference.docx
+bibliography: ../../common/references.bib
+csl: ../../common/csl/apa.csl
+---
+
+::: {custom-style="Author"}
+Josef Mana^1^
+:::
+
+::: {custom-style="Affiliation"}
+^1^Institute of Psychology, The Czech Academy of Sciences
+:::
+
+::: {custom-style="Normal"}
+Associative blocking refers to the attenuation of learning about a cue when it is presented alongside another cue that already reliably predicts an outcome. Although blocking is a cornerstone phenomenon in associative learning theory, its underlying attentional mechanisms remain contested. Behavioural studies combined with eye-tracking have demonstrated that blocking occurs robustly in humans and can be explained by learned inattention to the blocked cue. Two competing mechanisms have been proposed to account for this inattention: attentional shifts, whereby attention is rapidly redirected away from the blocked cue, and attentional competition, whereby cues vie for limited attentional resources.
+
+No experiment has yet provided a decisive test capable of discriminating between these two accounts. However, recent simulation work by @paskewitz2020 has identified an experimental design that could, in principle, adjudicate between attentional shift and attentional competition.
+
+The poster presents a project proposal with two primary aims. First, we propose a high-powered replication of the key association blocking findings reported by @beesley2011. Second, we outline an extension of their experimental paradigm that incorporates design features motivated by Paskewitz and Jones’s theoretical analysis, enabling a direct empirical comparison of the two attentional mechanisms. Secondary aims of the proposed project include improving data handling through the use of psychometrically principled analytical approaches and conducting a formal causal analysis of the experimental design. Overall, this project proposal aims to clarify the attentional processes underlying associative blocking and to strengthen the methodological foundations of research in human associative learning.
+:::
+
+## References
