@@ -22,6 +22,7 @@ keywords:
   - Blocking
 echo: false
 warnings: false
+bibliography: ../../common/references.bib
 ---
 
 ```{r}
@@ -35,27 +36,38 @@ devtools::load_all("../../../catlasr")
 devtools::load_all("../../../../mathpsychr")
 ```
 
-## Preamble
+## Introduction
 
-Associative blocking refers to the attenuation of learning about a cue when it is accompanied by another cue that has already been established to reliably predict an outcome [@beesley2011; @paskewitz2020].
+Associative forward blocking refers to the attenuation of learning about a stimulus-outcome relationship when the stimulus is accompanied by another one that has already been established to reliably predict that outcome [@beesley2011; @paskewitz2020].
 
-Behavioural studies combined with eye-tracking have demonstrated that blocking occurs in human associative learning and that it can be accounted for by learned *in*attention to the blocked cue [@kruschke2005; @beesley2011; @lepelley2007; @wills2007]. Two candidate mechanisms have been proposed to explain this phenomenon: rapid **attentional shifts**, whereby redirecting attention away from the blocked cue improves learning, and **attentional competition**, whereby cues vie for a limited attentional resource [@kruschke2005; @paskewitz2020].
+Behavioural studies combined with eye-tracking have demonstrated that blocking occurs in human associative learning and that it can be accounted for by learned *in*attention to the blocked cue [@kruschke2005; @beesley2011; @lepelley2007; @wills2007; @luque2018]. Two candidate mechanisms have been proposed to explain this phenomenon: rapid **attentional shifts**, whereby redirecting attention away from the blocked cue improves learning, and **attentional competition**, whereby cues vie for a limited attentional resource [@kruschke2005; @paskewitz2020].
 
 However, no definitive experiment capable of discriminating between these two proposed mechanisms has yet been conducted. Using simulations, @paskewitz2020 derived an experimental design that could, in principle, adjudicate between the two accounts.
 
 The primary aims of this project are to:
 
-1. replicate the findings of @beesley2011 in a large sample, and
-2. design and implement an extension of this paradigm that allows for direct comparison between the attentional shift and attentional competition accounts of blocking, drawing on the theoretical analysis by @paskewitz2020.
+1.  replicate the findings of @beesley2011 in a large sample, and
+2.  design and implement an extension of this paradigm that allows for direct comparison between the attentional shift and attentional competition accounts of blocking, drawing on the theoretical analysis by @paskewitz2020.
 
-The secondary aims of this project are to:
+## Forward Blocking
 
-* improve data handling using more psychometrically principled methods that go beyond those typically employed in the existing literature, and
-* conduct a formal causal analysis of the experimental design to address unresolved questions concerning inferences about the phenomenon of blocking derived from the current paradigm.
+Blocking was first described in rodents by @kamin1969 and later demonstrated in human contingency learning by @dickinson1984 and @shanks1985. The basic phenomenon can be explained by simple associative learning models such as the Rescorla–Wagner model [@rescorla1972]. However, subsequent work suggested that blocking is accompanied by shifts of attention away from blocked cues, and can thus be better explained by attentional theories of associative learning [e.g., @mackintosh1975; @pearce1980].
 
-## Study Design
+Although alternative explanations based on propositional reasoning have been proposed ***(cite propositional theories)***, learned attention accounts remain influential and continue to be used in both empirical and computational work [@paskewitz2020; @paskewitz2023; @kelly2025a; @kelly2025b]^[**Look for more broad use of the theories. It is surely there, they are popular.**]. Rather than adjudicating directly between competing theoretical frameworks, the present study focuses on subjecting learned attention models to a severe empirical testing^[**Cite Deborah Mayo here?**].
 
-### Replication
+Evidence for attentional mechanisms in blocking comes from several lines of research, including experimental manipulations of cue competition [@lepelley2007; @beesley2011], eye-tracking studies of overt attention [@kruschke2005; @wills2007; @lepelley2007], behavioural measures of attentional bias [@liu2013; @luque2018], and computational simulations of attentional learning models [@kruschke2005; @paskewitz2020; @paskewitz2023; see also @sewell2012 for discussion]. Building on recent simulation work [@paskewitz2020], the present study designs an experimental procedure aimed at testing key predictions of learned-attention theories about blocking and its relation to attention.
+
+## Outline
+
+**TBA**
+
+* @williams1999 says the blocking is central for learning theories
+* @maes2016 fail to replicate 15 rats studies' evidence of blocking
+* @soto2018 argue whit @maes2018 about importance of the failure to replicate
+* => conclude replication is very important before we do anything more
+* add outline figure via `{mathpsychr}`'s new magic
+
+## Experiment 1 (replication)
 
 @tbl-blocking-original shows the experimental design employed by @beesley2011.
 
@@ -75,7 +87,7 @@ tibble(
   test_pref = rep(4:3, 4)
 ) |>
   gt() |>
-  apa_style() |>
+  #apa_style() |>
   sub_missing(missing_text = "") |>
   cols_align(align = "center") |>
   tab_spanner(label = "Stage 1", columns = starts_with("stage_1")) |>
@@ -89,7 +101,7 @@ tibble(
   )
 ```
 
-### Extension
+## Eperiment 2 (extension)
 
 @tbl-blocking-extension shows the experimental design of @beesley2011 after changes .
 
@@ -110,7 +122,7 @@ tibble(
   test_pred_comp = rep(4:3, 4)
 ) |>
   gt() |>
-  apa_style() |>
+  #apa_style() |>
   sub_missing(missing_text = "") |>
   cols_align(align = "center") |>
   tab_spanner(label = "Stage 1", columns = starts_with("stage_1")) |>
