@@ -1,6 +1,8 @@
 ---
-title: Disentangling Attentional Shift and Attentional Competition Accounts of Associative Blocking
-subtitle: Replication and Extension of Beesley & Le Pelley ([2011](https://doi.org/10.1037/a0019526))
+title: Disentangling Attentional Shift and Attentional Competition Accounts of
+  Associative Blocking
+subtitle: Replication and Extension of Beesley & Le Pelley
+  ([2011](https://doi.org/10.1037/a0019526))
 authors:
   - name: Josef Mana
     id: jm
@@ -23,6 +25,9 @@ keywords:
 echo: false
 warnings: false
 bibliography: ../../common/references.bib
+editor: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r}
@@ -32,82 +37,160 @@ bibliography: ../../common/references.bib
 library(tidyverse)
 library(gt)
 #library(patchwork)
+
 devtools::load_all("../../../catlasr")
 devtools::load_all("../../../../mathpsychr")
+
+data("blocking0")
 ```
 
 ## Introduction
 
-Associative forward blocking refers to the attenuation of learning about a stimulus-outcome relationship when the stimulus is accompanied by another one that has already been established to reliably predict that outcome [@beesley2011; @paskewitz2020].
+Associative forward blocking[^1] refers to the attenuation of learning about
+a stimulus-outcome relationship when the stimulus is accompanied by
+another one that has already been established to reliably predict that
+outcome [@beesley2011; @paskewitz2020].
 
-Behavioural studies combined with eye-tracking have demonstrated that blocking occurs in human associative learning and that it can be accounted for by learned *in*attention to the blocked cue [@kruschke2005; @beesley2011; @lepelley2007; @wills2007; @luque2018]. Two candidate mechanisms have been proposed to explain this phenomenon: rapid **attentional shifts**, whereby redirecting attention away from the blocked cue improves learning, and **attentional competition**, whereby cues vie for a limited attentional resource [@kruschke2005; @paskewitz2020].
+[^1]: Herein, I will refer to forward blocking simply as _blocking_
+    to avoid text cluttering.
 
-However, no definitive experiment capable of discriminating between these two proposed mechanisms has yet been conducted. Using simulations, @paskewitz2020 derived an experimental design that could, in principle, adjudicate between the two accounts.
+Behavioural studies combined with eye-tracking have demonstrated that
+blocking occurs in human associative learning and that it can be
+accounted for by learned *in*attention to the blocked cue
+[@kruschke2005; @beesley2011; @lepelley2007; @wills2007; @luque2018].
+Two candidate mechanisms have been proposed to explain this phenomenon:
+rapid **attentional shifts**, whereby redirecting attention away from
+the blocked cue improves learning, and **attentional competition**,
+whereby cues vie for a limited attentional resource [@kruschke2005;
+@paskewitz2020].
+
+However, no definitive experiment capable of discriminating between
+these two proposed mechanisms has yet been conducted. Using simulations,
+@paskewitz2020 derived an experimental design that could, in principle,
+adjudicate between the two accounts.
 
 The primary aims of this project are to:
 
-1.  replicate the findings of @beesley2011 in a large sample, and
-2.  design and implement an extension of this paradigm that allows for direct comparison between the attentional shift and attentional competition accounts of blocking, drawing on the theoretical analysis by @paskewitz2020.
+1.  *replicate* the prototypical blocking findings of @beesley2011 in a large
+    sample, and
+2.  *design and implement an extension* of this paradigm that allows for
+    direct comparison between the attentional shift and attentional
+    competition accounts of blocking, drawing on the theoretical
+    analysis by @paskewitz2020.
 
 ## Forward Blocking
 
-Blocking was first described in rodents by @kamin1969 and later demonstrated in human contingency learning by @dickinson1984 and @shanks1985. The basic phenomenon can be explained by simple associative learning models such as the Rescorla–Wagner model [@rescorla1972]. However, subsequent work suggested that blocking is accompanied by shifts of attention away from blocked cues, and can thus be better explained by attentional theories of associative learning [e.g., @mackintosh1975; @pearce1980].
+Blocking was first described in rodents by @kamin1969 and later
+demonstrated in human contingency learning by @dickinson1984 and
+@shanks1985. The basic phenomenon can be explained by simple associative
+learning models such as the Rescorla–Wagner model [@rescorla1972].
+However, subsequent work suggested that blocking is accompanied by
+shifts of attention away from blocked cues, and can thus be better
+explained by attentional theories of associative learning [e.g.,
+@mackintosh1975; @pearce1980].
 
-Although alternative explanations based on propositional reasoning have been proposed ***(cite propositional theories)***, learned attention accounts remain influential and continue to be used in both empirical and computational work [@paskewitz2020; @paskewitz2023; @kelly2025a; @kelly2025b]^[**Look for more broad use of the theories. It is surely there, they are popular.**]. Rather than adjudicating directly between competing theoretical frameworks, the present study focuses on subjecting learned attention models to a severe empirical testing^[**Cite Deborah Mayo here?**].
+Although alternative explanations based on propositional reasoning have
+been proposed ***(cite propositional theories)***, learned attention
+accounts remain influential and continue to be used in both empirical
+and computational work [@paskewitz2020; @paskewitz2023; @kelly2025a;
+@kelly2025b][^2]. Rather than adjudicating directly between competing
+theoretical frameworks, the present study focuses on subjecting learned
+attention models to a severe empirical testing [@mayo1991].
 
-Evidence for attentional mechanisms in blocking comes from several lines of research, including experimental manipulations of cue competition [@lepelley2007; @beesley2011], eye-tracking studies of overt attention [@kruschke2005; @wills2007; @lepelley2007], behavioural measures of attentional bias [@liu2013; @luque2018], and computational simulations of attentional learning models [@kruschke2005; @paskewitz2020; @paskewitz2023; see also @sewell2012 for discussion]. Building on recent simulation work [@paskewitz2020], the present study designs an experimental procedure aimed at testing key predictions of learned-attention theories about blocking and its relation to attention.
+[^2]: **Look for more broad use of the theories. It is surely there,
+    they are popular.**
 
-## Outline
+Evidence for attentional mechanisms in blocking comes from several lines
+of research, including experimental manipulations of cue competition
+[@lepelley2007; @beesley2011], eye-tracking studies of overt attention
+[@kruschke2005; @wills2007; @lepelley2007], behavioural measures of
+attentional bias [@liu2013; @luque2018], and computational simulations
+of attentional learning models [@kruschke2005; @paskewitz2020;
+@paskewitz2023; see also @sewell2012 for discussion]. Building on recent
+simulation work [@paskewitz2020], the present study designs an
+experimental procedure aimed at testing key predictions of
+learned-attention theories about blocking and its relation to attention.
 
-**TBA**
+In the animal learning literature, blocking is widely regarded as a cornerstone
+phenomenon, prompting strong claims such as that *"\[n\]o empirical finding in
+the study of animal learning has been of greater theoretical importance than the
+phenomenon of blocking."* [@williams1999] However, despite its apparent
+robustness and the large body of supporting evidence, @maes2016 were unable to
+detect the effect across fifteen replications of previously published rodent
+paradigms (see @soto2018 and @maes2018 for discussion of the implications of
+these findings). Given this elusive nature of the the blocking phenomenon even
+in tightly controlled animal studies, it follows that any attempt to extend
+blocking paradigms in human contingency learning should be preceded by a
+rigorous replication of the original effect.
 
-* @williams1999 says the blocking is central for learning theories
-* @maes2016 fail to replicate 15 rats studies' evidence of blocking
-* @soto2018 argue whit @maes2018 about importance of the failure to replicate
-* => conclude replication is very important before we do anything more
-* add outline figure via `{mathpsychr}`'s new magic
+## Study designs
 
-## Experiment 1 (replication)
-
-@tbl-blocking-original shows the experimental design employed by @beesley2011.
+Although typically treated as manifestations of the same underlying phenomenon,
+blocking effects can be elicited using several related but methodologically
+distinct experimental designs, each with its own strengths and limitations. @tbl-blocking-original summarizes three representative paradigms from the
+literature [@kruschke2005; @lepelley2007; @beesley2011; @sewell2012; @luque2018;
+see also @paskewitz2020; @paskewitz2023].
 
 ```{r}
 #| label: tbl-blocking-original
-#| tbl-cap: "Associational blocking experimental design as used by @beesley2011"
+#| tbl-cap: Associational blocking experimental designs used by prior research.
 
-tibble(
-  stage_1_cue = c("A", "C", "E", "G", "I", "L", "O", "R"),
-  stage_1_out = rep(c(rep(1, 2), rep(2, 2)), 2),
-  stage_2_cue = c("AB", "CD", "EF", "GH", "JK", "MN", "PQ", "ST"),
-  stage_2_out = rep(c(rep(1, 2), rep(2, 2)), 2),
-  stage_3_cue = c("BK", "DN", "FQ", "HT", rep(NA, 4)),
-  stage_3_out = c(rep(3:4, 2), rep(NA, 4)),
-  test_cue = c("BT", "DQ", "FN", "HK", "BN", "DK", "FT", "HQ"),
-  test_out = "?",
-  test_pref = rep(4:3, 4)
-) |>
-  gt() |>
-  #apa_style() |>
-  sub_missing(missing_text = "") |>
+blocking0$designs |>
+  mutate(
+    design = factor(
+      case_when(
+        design == "kruschke2005" ~ 1,
+        design == "luque2018" ~ 2,
+        design == "beesley2011" ~ 3
+      ),
+      levels = 1:3,
+      labels = c(
+        "Kruschke et al. (2005)",
+        "Luque et al. (2018)",
+        "Beesley et al. (2011)"
+      ),
+      ordered = TRUE
+    ),
+    across(ends_with("cue"), toupper)
+  ) |>
+  arrange(design) |>
+  gt(groupname_col = "design") |>
+  sub_missing(missing_text = "---") |>
   cols_align(align = "center") |>
-  tab_spanner(label = "Stage 1", columns = starts_with("stage_1")) |>
-  tab_spanner(label = "Stage 2", columns = starts_with("stage_2")) |>
-  tab_spanner(label = "Stage 3", columns = starts_with("stage_3")) |>
+  tab_spanner(label = "Stage 1", columns = starts_with("stage1")) |>
+  tab_spanner(label = "Stage 2", columns = starts_with("stage2")) |>
+  tab_spanner(label = "Stage 3", columns = starts_with("stage3")) |>
   tab_spanner(label = "Test", columns = starts_with("test")) |>
   cols_label(
     ends_with("cue") ~ "Cues",
-    ends_with("out") ~ "Outcome",
-    ends_with("pref") ~ "Preferred"
-  )
+    ends_with("outcome") ~ "Outcome",
+    ends_with("preference") ~ "Preferred"
+  ) |>
+  catlasr::apa_style()
 ```
+
+The first of these designs, used for example by @kruschke2005 and @sewell2012,
+captures the core logic of blocking. In Stage 1 of the experiment, (blocking)
+cue A is established as a reliable predictor of outcome o1. In Stage 2, A is
+presented in compound with a novel (blocked) cue B, and the same outcome (o1).
+Under these conditions, B is both reliable predictor of o1 but also redundant
+because A already fully predicts the outcome. In a subsequent Test stage,
+participants are asked to choose between the outcome (o1) associated with the
+previously redundant cue B and an alternative outcome (o2) associated with a
+control cue (D), which was not paired with A. Participants typically prefer the
+outcome associated with the control cue. This difference constitutes the
+canonical blocking effect.
+
+## Experiment 1 (replication)
 
 ## Eperiment 2 (extension)
 
-@tbl-blocking-extension shows the experimental design of @beesley2011 after changes .
+@tbl-blocking-extension shows the experimental design of @beesley2011
+after changes .
 
 ```{r}
 #| label: tbl-blocking-extension
-#| tbl-cap: "Associational blocking experimental design proposed by @paskewitz2020"
+#| tbl-cap: Associational blocking experimental designs proposed by @paskewitz2020.
 
 tibble(
   stage_1_cue = c("A", "C", "E", "G", "I", "L", "O", "R"),
@@ -122,7 +205,6 @@ tibble(
   test_pred_comp = rep(4:3, 4)
 ) |>
   gt() |>
-  #apa_style() |>
   sub_missing(missing_text = "") |>
   cols_align(align = "center") |>
   tab_spanner(label = "Stage 1", columns = starts_with("stage_1")) |>
@@ -135,7 +217,8 @@ tibble(
     ends_with("out") ~ "Outcome",
     ends_with("shift") ~ "Shifting (RSWAC)",
     ends_with("comp") ~ "Competition\n(CompAct)"
-  )
+  ) |>
+  catlasr::apa_style()
 ```
 
 ## References
