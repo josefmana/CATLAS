@@ -32,6 +32,9 @@ This repository contains Quarto manuscripts for the CATLAS research program:
 
 ### Related infrastructure
 
-- Theory-dependent R code lives in [{catlasr}](https://github.com/josefmana/catlasr.git)
+- Theory-dependent R code lives in
+  [{catlasr}](https://github.com/josefmana/catlasr.git)
 - Theory-agnostic mathematical psychology machinery implemented in R lives in
-[{mathpsychr}](https://github.com/josefmana/mathpsychr.git)
+  [{mathpsychr}](https://github.com/josefmana/mathpsychr.git)
+- Experimental infrastructure lives in
+  [catlaslab](https://github.com/josefmana/catlaslab.git)
