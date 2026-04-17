@@ -44,7 +44,7 @@ devtools::load_all("../../../../mathpsychr")
 data("blocking0")
 ```
 
-## Introduction
+# Introduction {#sec-intro}
 
 Associative forward blocking[^1] refers to the attenuation of learning about
 a stimulus-outcome relationship when the stimulus is accompanied by
@@ -78,7 +78,7 @@ The primary aims of this project are to:
     competition accounts of blocking, drawing on the theoretical
     analysis by @paskewitz2020.
 
-## Forward Blocking
+## Forward Blocking {#sec-history}
 
 Blocking was first described in rodents by @kamin1969 and later
 demonstrated in human contingency learning by @dickinson1984 and
@@ -123,11 +123,11 @@ in tightly controlled animal studies, it follows that any attempt to extend
 blocking paradigms in human contingency learning should be preceded by a
 rigorous replication of the original effect.
 
-## Study designs
+## Study designs {#sec-designs}
 
 Although blocking is often treated as a unitary phenomenon, it can be elicited
 using several related but methodologically distinct experimental designs. These
-paradigms differ in how they set-up cue competition, control for confounds and
+paradigms differ in how they set up cue competition, control for confounds and
 what inferences they permit about underlying mechanisms. @tbl-blocking-original
 summarises three representative designs used in prior research [@kruschke2005;
 @lepelley2007; @beesley2011; @sewell2012; @luque2018; see also @paskewitz2020;
@@ -173,27 +173,42 @@ blocking0$designs |>
 
 The **canonical blocking design** [e.g., @kruschke2005; @sewell2012] captures the core logic of the phenomenon. In Stage 1, a (blocking) cue A is established as a reliable predictor of an outcome (o1). In Stage 2, A is presented in compound with a novel (blocked) cue B, paired with the same outcome. Although B is a valid predictor of o1, it is redundant because A already fully predicts the outcome. In a subsequent Test stage, participants are asked to choose between the outcome (o1) associated with the blocked cue B and an alternative outcome (o2) associated with a control cue D, which was not paired with a pretrained predictor. Participants typically prefer the outcome associated with the control cue. This difference constitutes the canonical blocking effect.
 
-Despite its conceptual simplicity, this design is partially confounded by **cue novelty**. Specifically, the blocked cue B is introduced alongside a
-well-established pretrained predictor (A), whereas the control cue D is paired with another novel cue (C). This asymmetry makes it difficult to determine whether reduced learning about B reflects blocking per se or differences in how novel cues are processed within a compound.
+Despite its conceptual simplicity, this design is partially confounded by **cue novelty**. Specifically, the blocked cue B is introduced alongside a well-established predictor (A), whereas the control cue D is paired with another novel cue (C). This asymmetry makes it difficult to determine whether reduced learning about B reflects blocking per se or differences in how novel cues are processed within a compound.
 
 One approach to addressing this limitation is to introduce the competitor of the control cue during Stage 1 as a non-predictive pretrained stimulus [e.g., @luque2018]. This manipulation equates novelty across conditions, as both blocked and control cues are paired with pretrained stimuli. However, this solution introduces a different potential confound, as the control cue may appear more predictive by virtue of being compared with a known non-predictive cue, thereby inflating the apparent blocking effect (B-minus-D) without necessarily engaging the same underlying
 mechanisms.
 
-A further limitation shared by both designs is that blocked and control cues are consistently paired with the same outcomes. While this allows for strong conclusions about specific cue–outcome associations, it provides limited insight into **cue-specific processing**. In particular, blocking effects observed in these paradigms may arise from interference in learning or memory (i.e., the A-o1 contingency can interfere with learning of B-o1 contingency) without implying changes in attention to the blocked cue itself.
-
-This ambiguity is reflected in computational modelling results. For example, @sewell2012 showed that when fitting the EXIT model [@kruschke2001] to data from the canonical blocking paradigm, the best-fitting attention parameters shrank toward zero, effectively reducing EXIT to the Rescorla–Wagner model [@rescorla1972]. In other words, the canonical design can be accommodated without invoking attentional mechanisms, even when such mechanisms are formally available within the model.
+A further limitation shared by both designs is that blocked and control cues are consistently paired with the same outcomes. While this allows for strong conclusions about specific cue–outcome associations, it provides limited insight into **cue-specific processing**. In particular, blocking effects observed in these paradigms may arise from interference of cue-outcome associations (e.g., A-o1 interfering with B-o1 learning or memory) without requiring any change in the processing of the blocked cue itself.
 
 To address these issues, @lepelley2007 introduced a **three-stage** design in which both blocked and control cues are subsequently paired with novel outcomes in Stage 3, in the absence of previously trained competitors. This modification has two important consequences.
 
-First, it attenuates the novelty confound. Because all critical cues are paired with new outcomes in Stage 3, and have comparable prior exposure, differences in learning are less readily attributable to novelty.
+First, it attenuates the novelty confound. Because all critical cues are paired with new outcomes in Stage 3, and have comparable prior exposure, differences in learning are less readily attributable to novelty. Second, and more importantly, the design provides a more severe test of attentional accounts. By requiring previously blocked and control cues to support new learning, the design creates conditions under which any deficit in processing of blocked cues must generalise beyond the original contingency.
 
-Second, and more importantly, the design provides stronger leverage for testing attentional accounts. By requiring previously blocked and control cues to support new learning, it becomes possible to assess whether blocking reflects enduring differences in cue processing. Consistent with this interpretation, @paskewitz2020 showed that the EXIT model fails to reproduce blocking effects in the three-stage paradigm unless it includes at least one attentional mechanism (either rapid attentional shifts or attentional competition). When all attentional mechanisms are removed, the model no longer captures the empirical pattern.
+Taken together, these findings suggest that the three-stage design places stronger constraints on theoretical accounts of blocking than canonical paradigms. In particular, it creates conditions under which attentional mechanisms are not merely sufficient but necessary to explain the data within a well-specified computational framework. Building on this logic, the present study adopts and extends this design to directly contrast predictions derived from competing attentional mechanisms. In particular, this increased severity becomes evident when evaluating formal models of learning, as discussed in the following section.
 
-Taken together, these findings suggest that the three-stage design places stronger constraints on theoretical accounts of blocking than canonical paradigms. In particular, it creates conditions under which attentional mechanisms are not merely sufficient but necessary to explain the data within a well-specified computational framework. Building on this logic, the present study adopts and extends this design to directly contrast predictions derived from competing attentional mechanisms.
+## Computational modelling {#sec-compmods}
 
-## Experiment 1 (replication)
+Blocking elicited by the canonical design can be explained by *standard* associative learning models without attentional components. For instance, @sewell2012 showed that when fitting the EXIT model [@kruschke2001] to data from the canonical blocking paradigm, the best-fitting attention parameters shrank toward zero, effectively reducing EXIT to the Rescorla–Wagner model [@rescorla1972]. In other words, the canonical design can be accommodated without invoking attentional mechanisms, even when such mechanisms are formally available within the model [however, cf. @liu2013].
 
-## Eperiment 2 (extension)
+By contrast, *attention* is a necessary mechanism for associative models to account for blocking elicited by the three-stage paradigm. @paskewitz2020 showed that within this paradigm, the EXIT model fails to reproduce blocking unless it includes at least one attentional mechanism (either rapid attentional shifts or attentional competition). Critically, when these mechanisms are combined, the model becomes overly flexible. Unlike its single-mechanism submodels, the full model can generate both the empirically observed pattern as well as its reversal.
+
+Rapid attentional shifting and attentional competition are thus best viewed as competing explanations of blocking, rather than complementary components of a single process. @paskewitz2020 propose a modification of the three-stage blocking paradigm designed to differentiate between these two accounts. However, empirical tests capable of doing so are still lacking.
+
+## Experiment 1 (replication) {#sec-exp1-replication}
+
+The three-stage procedure used to evaluate mechanisms of blocking by @paskewitz2020 was originally introduced by @lepelley2007. Later, @beesley2011 combined this design with eye-tracking to provide more direct evidence of reduced overt attention to blocked stimuli during both compound learning (Stage 2) and subsequent novel learning (Stage 3).
+
+Accordingly, we first aim to replicate the findings of @beesley2011 and then extend their experimental design following modifications proposed by @paskewitz2020. Because these modifications concern behavioural predictions and do not directly involve eye-tracking, we focus initially on replicating and extending behavioural patterns of the three-stage blocking paradigm. This approach allows us to leverage online sampling to substantially increase statistical efficiency before moving to more controlled laboratory studies.
+
+### Stimuli {#sec-exp1-stimuli}
+
+### Procedure {#sec-exp1-procedure}
+
+### Measures {#sec-exp1-measures}
+
+### Analysis {#sec-exp1-analysis}
+
+## Eperiment 2 (extension) {#sec-exp2-extension}
 
 @tbl-blocking-extension shows the experimental design of @beesley2011
 after changes .
