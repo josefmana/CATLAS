@@ -52,7 +52,10 @@ by another one that has already been established to reliably predict
 that outcome [@beesley2011; @paskewitz2020].
 
 [^1]: Herein, I will refer to forward blocking simply as *blocking* to
-    avoid text cluttering.
+    avoid text cluttering. However, note that other forms, such as
+    backward blocking, whereby learning stages of are reversed starting
+    with compound cues followed by single-cue contingencies, were also
+    defined.
 
 Behavioural studies combined with eye-tracking have demonstrated that
 blocking occurs in human associative learning and that it can be
@@ -106,10 +109,10 @@ of research, including experimental manipulations of cue competition
 [@kruschke2005; @wills2007; @lepelley2007], behavioural measures of
 attentional bias [@liu2013; @luque2018], and computational simulations
 of attentional learning models [@kruschke2005; @paskewitz2020;
-@paskewitz2023; see also @sewell2012 for discussion]. Building on recent
-simulation work [@paskewitz2020], the present study designs an
-experimental procedure aimed at testing key predictions of
-learned-attention theories about blocking and its relation to attention.
+@paskewitz2023; see also @sewell2012]. Building on recent simulation
+work [@paskewitz2020], the present study designs an experimental
+procedure aimed at testing key predictions of learned-attention theories
+about blocking and its relation to attention.
 
 In the animal learning literature, blocking is widely regarded as a
 cornerstone phenomenon, prompting strong claims such as that *"\[n\]o
@@ -119,25 +122,25 @@ theoretical importance than the phenomenon of blocking."*
 body of supporting evidence, @maes2016 were unable to detect the effect
 across fifteen replications of previously published rodent paradigms
 (see @soto2018 and @maes2018 for discussion of the implications of these
-findings). Given this elusive nature of the the blocking phenomenon even
-in tightly controlled animal studies, it follows that any attempt to
-extend blocking paradigms in human contingency learning should be
-preceded by a rigorous replication of the original effect.
+findings). Given this elusive nature of the blocking phenomenon even in
+tightly controlled animal studies, it follows that any attempt to extend
+blocking paradigms in human contingency learning should be preceded by a
+rigorous replication of the original effect.
 
 ## Study designs {#sec-designs}
 
-Although blocking is often treated as a unitary phenomenon, it can be
+Although blocking is often treated as a single phenomenon, it can be
 elicited using several related but methodologically distinct
-experimental designs. These paradigms differ in how they set up cue
+experimental designs. These designs differ in how they set up cue
 competition, control for confounds and what inferences they permit about
-underlying mechanisms. @tbl-blocking-original summarises three
+underlying mechanisms. @tbl-design-canonical summarises two
 representative designs used in prior research [@kruschke2005;
 @lepelley2007; @beesley2011; @sewell2012; @luque2018; see also
 @paskewitz2020; @paskewitz2023].
 
 ```{r}
-#| label: tbl-blocking-original
-#| tbl-cap: Associative blocking experimental designs used by prior research.
+#| label: tbl-design-canonical
+#| tbl-cap: Representative blocking experimental designs used by prior research.
 
 blocking0$designs |>
   mutate(
@@ -145,25 +148,25 @@ blocking0$designs |>
       case_when(
         design == "kruschke2005" ~ 1,
         design == "luque2018" ~ 2,
-        design == "lepelley2007" ~ 3
+        .default = NA
       ),
-      levels = 1:3,
+      levels = 1:2,
       labels = c(
         "Canonical",
-        "Novelty-controlled",
-        "Three-stage"
+        "Novelty-controlled"
       ),
       ordered = TRUE
     ),
     across(ends_with("cue"), toupper)
   ) |>
+  drop_na(design) |>
   arrange(design) |>
+  select(!starts_with("stage3")) |>
   gt(groupname_col = "design") |>
   sub_missing(missing_text = "---") |>
   cols_align(align = "center") |>
   tab_spanner(label = "Stage 1", columns = starts_with("stage1")) |>
   tab_spanner(label = "Stage 2", columns = starts_with("stage2")) |>
-  tab_spanner(label = "Stage 3", columns = starts_with("stage3")) |>
   tab_spanner(label = "Test", columns = starts_with("test")) |>
   cols_label(
     ends_with("cue") ~ "Cues",
@@ -214,7 +217,31 @@ of the blocked cue itself.
 To address these issues, @lepelley2007 introduced a **three-stage**
 design in which both blocked and control cues are subsequently paired
 with novel outcomes in Stage 3, in the absence of previously trained
-competitors. This modification has two important consequences.
+competitors (see @tbl-design-three-stage). This modification has two
+important consequences.
+
+```{r}
+#| label: tbl-design-three-stage
+#| tbl-cap: The three-stage experimental design for studying blocking.
+
+blocking0$designs |>
+  mutate(across(ends_with("cue"), toupper)) |>
+  filter(design == "lepelley2007") |>
+  select(-design) |>
+  gt() |>
+  sub_missing(missing_text = "---") |>
+  cols_align(align = "center") |>
+  tab_spanner(label = "Stage 1", columns = starts_with("stage1")) |>
+  tab_spanner(label = "Stage 2", columns = starts_with("stage2")) |>
+  tab_spanner(label = "Stage 3", columns = starts_with("stage3")) |>
+  tab_spanner(label = "Test", columns = starts_with("test")) |>
+  cols_label(
+    ends_with("cue") ~ "Cues",
+    ends_with("outcome") ~ "Outcome",
+    ends_with("preference") ~ "Preferred"
+  ) |>
+  catlasr::apa_style()
+```
 
 First, it attenuates the novelty confound. Because all critical cues are
 paired with new outcomes in Stage 3, and have comparable prior exposure,
@@ -264,7 +291,7 @@ the three-stage blocking paradigm designed to differentiate between
 these two accounts. However, empirical tests capable of doing so are
 still lacking.
 
-## Experiment 1 (replication) {#sec-exp1-replication}
+## Experiment 1 (replication) {#sec-online-replication}
 
 The three-stage procedure used to evaluate mechanisms of blocking by
 @paskewitz2020 was originally introduced by @lepelley2007. Later,
@@ -282,38 +309,99 @@ blocking paradigm. This approach allows us to leverage online sampling
 to substantially increase statistical efficiency before moving to more
 controlled laboratory studies.
 
-### Procedure {#sec-exp1-procedure}
+### Procedure {#sec-online-replication-procedure}
 
-In this study, we closely follow the procedure used by @beesley2011, which was a variant of the allergy prediction task [@lochmann2003]. Each trial consisted of presenting a case of a fictitious patient taking a vitamin pill containing certain chemicals (*cues*), and asking the participant which of two possible side effects (*outcomes*) the patient would suffer.
+In this study, we closely follow the procedure used by @beesley2011,
+which was a variant of the allergy prediction task [@dickinson1996; 
+@lochmann2003]. Each trial consisted of presenting a case of a
+fictitious patient taking a vitamin pill containing certain chemicals
+(*cues*), and asking the participant which of two possible side effects
+(*outcomes*) the patient would suffer.
 
-The overall study design followed the three-stage paradigm shown in @tbl-blocking-original, with chemicals randomly assigned to cues $A-\beta$, and side effects randomly assigned to outcomes $o1-o4$, independently for each participant. Critically, not only did the outcomes change between Stages 2 (compound learning) and 3 (novel learning), but Stage 3 also introduced a new patient, Mr. Y, replacing the previous patient, Mr. X.
+The overall study design followed the three-stage paradigm shown in
+@tbl-design-three-stage, with chemicals randomly assigned to cues
+$A-\beta$, and side effects randomly assigned to outcomes $o1-o4$,
+independently for each participant. Critically, not only did the
+outcomes change between Stages 2 (compound learning) and 3 (novel
+learning), but Stage 3 also introduced a new patient, Mr. Y, replacing
+the previous patient, Mr. X.
 
-Stages 1–3 consisted of 10, 8, and 6 blocks, respectively, with each block containing one instance of each of the eight stage-specific trial types. Trial types were randomised independently for each participant within each block, with the constraint that no trial type could be repeated consecutively across block boundaries.
+Stages 1–3 consisted of 10, 8, and 6 blocks, respectively, with each
+block containing one instance of each of the eight stage-specific trial
+types. Trial types were randomised independently for each participant
+within each block, with the constraint that no trial type could be
+repeated consecutively across block boundaries.
 
-During the training stages (Stages 1–3; pre-training, compound learning, and novel learning, respectively), participants received immediate feedback about the correctness of their responses to facilitate learning. In the test phase, participants were presented with two chemicals and first selected the side effect they believed the patient would suffer, followed by a confidence rating for that judgement. No feedback was provided during the test phase.
+During the training stages (Stages 1–3; pre-training, compound learning,
+and novel learning, respectively), participants received immediate
+feedback about the correctness of their responses to facilitate
+learning. In the test phase, participants were presented with two
+chemicals and first selected the side effect they believed the patient
+would suffer, followed by a confidence rating for that judgement. No
+feedback was provided during the test phase.
 
-### Stimuli {#sec-exp1-stimuli}
+### Stimuli {#sec-online-replication-stimuli}
 
-Cues ($A-\beta$) were randomly assigned names of 28 fictitious chemicals, separately for each participant. Because @beesley2011 do not provide a full list of chemicals used in their experiment, we used the available list from @lepelley2007, which employed a similar three-stage paradigm. As in @beesley2011, the following four side effects were randomly assigned to outcomes, separately for each participant: dizziness, itchiness, headache, and nausea. Outcomes $o1$ and $o2$ were always paired with Mr. X, whereas outcomes $o3$ and $o4$ were paired with Mr. Y.
+Cues ($A-\beta$) were randomly assigned names of 28 fictitious
+chemicals, separately for each participant. Because @beesley2011 do not
+provide a full list of chemicals used in their experiment, we used the
+available list from @lepelley2007, which employed a similar three-stage
+paradigm. As in @beesley2011, the following four side effects were
+randomly assigned to outcomes, separately for each participant:
+dizziness, itchiness, headache, and nausea. Outcomes $o1$ and $o2$ were
+always paired with Mr. X, whereas outcomes $o3$ and $o4$ were paired
+with Mr. Y.
 
-Cue stimuli consisted of words accompanied by a flask icon presented at the top of the screen ***(NOTE: give later more precise specification, either here or in appendix)***. Each training trial displayed either a single, horizontally centred chemical name (Stage 1) or two chemical names presented side-by-side (Stages 2–3), separated by ***some number of pixels*** and joined by a horizontally centred "\&" symbol indicating a compound cue. The left–right order of cues in Stages 2–3
-***(NOTE: the test phase ... TBA)*** was counterbalanced within participants across blocks.
+Cue stimuli consisted of words accompanied by a flask icon presented at
+the top of the screen ***(NOTE: give later more precise specification,
+either here or in appendix)***. Each training trial displayed either a
+single, horizontally centred chemical name (Stage 1) or two chemical
+names presented side-by-side (Stages 2–3), separated by ***some number
+of pixels*** and joined by a horizontally centred "&" symbol indicating
+a compound cue. The left–right order of cues in Stages 2–3 ***(NOTE: the
+test phase ... TBA)*** was counterbalanced within participants across
+blocks.
 
-At the vertical midline, a prompt reading _"Which of the following reactions did the patient have?"_ was displayed, followed by the instruction _"Click the picture of the reaction that you think, then click the OK button"_ on the next line.
+At the vertical midline, a prompt reading *"Which of the following
+reactions did the patient have?"* was displayed, followed by the
+instruction *"Click the picture of the reaction that you think, then
+click the OK button"* on the next line.
 
-At the bottom of the screen, two images of the same patient (Mr. X in Stages 1–2; Mr. Y in Stage 3 and the test phase) were presented, each depicting one of the two possible side effects corresponding to the outcomes. The left–right mapping of outcomes was fixed, with outcomes $o1$ and $o3$ always presented on the left, and outcomes $o2$ and $o4$ on the right. An OK button was displayed between the two images, centred horizontally. ***NOTE: Both images were generated by ... TBA.***
+At the bottom of the screen, two images of the same patient (Mr. X in
+Stages 1–2; Mr. Y in Stage 3 and the test phase) were presented, each
+depicting one of the two possible side effects corresponding to the
+outcomes. The left–right mapping of outcomes was fixed, with outcomes
+$o1$ and $o3$ always presented on the left, and outcomes $o2$ and $o4$
+on the right. An OK button was displayed between the two images, centred
+horizontally. ***NOTE: Both images were generated by ... TBA.***
 
-Participants selected their response by clicking on the image corresponding to the side effect they believed the patient would suffer. Upon selection, the chosen image was highlighted with a thin black frame. After confirming their choice by clicking the OK button, the response was recorded.
+Participants selected their response by clicking on the image
+corresponding to the side effect they believed the patient would suffer.
+Upon selection, the chosen image was highlighted with a thin black
+frame. After confirming their choice by clicking the OK button, the
+response was recorded.
 
-During training stages, feedback was provided immediately after each response. The word "Correct" (in green) was displayed following correct responses, and "Wrong" (in red) following incorrect responses, replacing the OK button. The correct response was additionally highlighted with a thick blue frame.
+During training stages, feedback was provided immediately after each
+response. The word "Correct" (in green) was displayed following correct
+responses, and "Wrong" (in red) following incorrect responses, replacing
+the OK button. The correct response was additionally highlighted with a
+thick blue frame.
 
-In the test phase, responses were collected in the same manner, but no feedback was provided. Instead, after each response, participants were asked to rate their confidence on a scale from 1 ("Not confident at all") to 10 ("Very confident"). Each of the eight test trial types was presented twice in random order, with left–right configuration of cues counterbalanced independently for each participant. ***(NOTE: @beesley2011 presented each trial only once—reconsider whether the second presentation is justified; although it occurs after training, it may still introduce dependencies)***
+In the test phase, responses were collected in the same manner, but no
+feedback was provided. Instead, after each response, participants were
+asked to rate their confidence on a scale from 1 ("Not confident at
+all") to 10 ("Very confident"). Each of the eight test trial types was
+presented twice in random order, with left–right configuration of cues
+counterbalanced independently for each participant. ***(NOTE:
+@beesley2011 presented each trial only once—reconsider whether the
+second presentation is justified; although it occurs after training, it
+may still introduce dependencies)***
 
-### Measures {#sec-exp1-measures}
+### Measures {#sec-online-replication-measures}
 
-### Analysis {#sec-exp1-analysis}
+### Analysis {#sec-online-replication-analysis}
 
-## Eperiment 2 (extension) {#sec-exp2-extension}
+## Eperiment 2 (extension) {#sec-online-extension}
 
 @tbl-blocking-extension shows the experimental design of @beesley2011
 after changes .
