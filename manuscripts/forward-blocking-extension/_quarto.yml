@@ -3,6 +3,11 @@ project:
 
 manuscript:
   article: index.qmd
+  notebooks:
+    - notebook: notebooks/replication-online-power.qmd
+      title: "Experiment 1: Power Analysis"
+    - notebook: notebooks/replication-online-prereg.qmd
+      title: "Experiment 1: Pre-registration"
 
 format:
   html:
@@ -14,7 +19,7 @@ format:
     documentclass: article
 
 execute:
-  freeze: true
+  freeze: false
 
 bibliography: ../../common/references.bib
 csl: ../../common/csl/apa.csl

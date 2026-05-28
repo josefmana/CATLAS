@@ -21,6 +21,7 @@ abstract: >
 keywords:
   - Attention
   - Learning
+  - Cue competition
   - Blocking
 echo: false
 warnings: false
@@ -41,7 +42,7 @@ library(gt)
 devtools::load_all("../../../catlasr")
 devtools::load_all("../../../../mathpsychr")
 
-data("blocking0")
+data("fb_designs", package = "catlasr")
 ```
 
 # Introduction {#sec-intro}
@@ -142,17 +143,19 @@ representative designs used in prior research [@kruschke2005;
 #| label: tbl-design-canonical
 #| tbl-cap: Representative blocking experimental designs used by prior research.
 
-blocking0$designs |>
+fb_designs |>
   mutate(
     design = factor(
       case_when(
-        design == "kruschke2005" ~ 1,
-        design == "luque2018" ~ 2,
+        bibtex == "kruschke2005" ~ 1,
+        bibtex == "wills2005" ~ 2,
+        bibtex == "luque2018" ~ 3,
         .default = NA
       ),
-      levels = 1:2,
+      levels = 1:3,
       labels = c(
         "Canonical",
+        "Standard",
         "Novelty-controlled"
       ),
       ordered = TRUE
@@ -161,7 +164,7 @@ blocking0$designs |>
   ) |>
   drop_na(design) |>
   arrange(design) |>
-  select(!starts_with("stage3")) |>
+  select(!starts_with("stage3"), -bibtex) |>
   gt(groupname_col = "design") |>
   sub_missing(missing_text = "---") |>
   cols_align(align = "center") |>
@@ -224,10 +227,10 @@ important consequences.
 #| label: tbl-design-three-stage
 #| tbl-cap: The three-stage experimental design for studying blocking.
 
-blocking0$designs |>
+fb_designs |>
   mutate(across(ends_with("cue"), toupper)) |>
-  filter(design == "lepelley2007") |>
-  select(-design) |>
+  filter(bibtex == "lepelley2007") |>
+  select(-design, -bibtex) |>
   gt() |>
   sub_missing(missing_text = "---") |>
   cols_align(align = "center") |>
@@ -438,5 +441,7 @@ tibble(
   ) |>
   catlasr::apa_style()
 ```
+
+## Eperiment 3 (generalisation) {#sec-online-generalisation}
 
 ## References
