@@ -37,7 +37,6 @@ editor:
 
 library(tidyverse)
 library(gt)
-#library(patchwork)
 
 devtools::load_all("../../../catlasr")
 devtools::load_all("../../../../mathpsychr")
