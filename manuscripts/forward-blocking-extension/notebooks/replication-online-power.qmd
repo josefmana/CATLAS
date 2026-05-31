@@ -19,14 +19,13 @@ execute:
   echo: false
 ---
 
-The overarching goal of Experiment 1 is to **replicate** the associational blocking observed by @beesley2011 in a **large scale online sample** to ensure the effect is replicable in our laboratory environment before trying to extent the original findings.
+The primary goal of Experiment 1 is to replicate the associational blocking observed by @beesley2011 in a large scale online sample to ensure the effect is replicable in our laboratory environment before trying to extent the original findings.
 
 **In this report, the aims are to**:
 
-1.  define dependent variables (*estimands*) and their measures (*estimates*),
-2.  retrospectively analyse the design of the original paper,
-3.  inform expectation about effect size by other similar papers,
-4.  conduct a formal power analysis for the primary outcome of the current study.
+1.  retrospectively analyse the design of the original paper,
+2.  inform expectation about the true effect size,
+3.  conduct a formal power analysis to estimate sufficient sample size.
 
 ```{r}
 #| label: envir-pwr-1
@@ -42,64 +41,72 @@ suppressPackageStartupMessages({
 data("fb_designs", package = "catlasr")
 ```
 
-# Dependent Variable
+```{r print-func}
+print_prob <- function(gc_obj, x) {
+  sprintf(
+    "%.1f%%",
+    round(100 * gc_obj$results[[x]], 1)
+  )
+} 
+print_exag <- function(gc_obj) {
+  sprintf(
+    "%.2f",
+    round(gc_obj$results$type_m, 2)
+  )
+}
 
-In their study of the effect of blocking on attention, @beesley2011 focused on three *estimands*:
+print_d <- function(d) {
+  sprintf(
+    "%.2f",
+    round(d, 2)
+  )
+}
+print_d_est <- function(x, sd) {
+  sprintf(
+    "%.2f",
+    round(x / sd, 2)
+  )
+}
 
-1.  average **behavioural blocking** effect in a contingency learning task,
-2.  average **attentional blocking** effect in a contingency learning task,
-3.  participant-wise **association** between the behavioural and attentional blocking.
+print_ci <- function(l, u) {
+  sprintf(
+    "[%.2f, %.2f]",
+    round(l, 2),
+    round(u, 2)
+  )
+}
 
-In this study, the focus is only on the first, behavioural *estimand*.
+print_p <- function(p) {
+  ifelse(
+    p < .001,
+    "< . 001",
+    paste0(
+      "= ",
+      sub(
+        "0.", ".",
+        sprintf("%.3f", round(p, 3)),
+        fixed = TRUE
+      )
+    )
+  )
+}
+```
 
-The associational blocking was defined as *"**attenuated learning** of the contingency between a cue and an outcome, when that cue is trained in compound with a second cue that has previously been established as predictive of the outcome."* [@beesley2011, p. 114]
+# Effect Size of Blocking
 
-Unlike studies using the canonical or standard blocking paradigms, @beesley2011 employed the three-stage design. In this study design, the researcher compares contingency learning of target cues blocked in Stage 2 (compound learning) to competing control (non-blocked) cues during Stage 3 (novel learning), in which both the outcome changes and the original (blocking) cues are no longer present (see the main text for a closer examination of this study paradigm and its comparisons to common alternatives).
+## @beesley2011
 
-Blocking is then **defined** as **slower learning** about the blocked relative to the control cues. However, the learning contingencies in Stage 3 do not allow for direct measurement of the difference between learning about blocked and control cues, because in order to allow for blocking to happen, blocked and control that relate to the same outcomes are presented conjointly.
+@beesley2011 reported mean blocking index[^1] $\mathbb{E}(BI_2) = +2.03$ across their sample of *N* = 26 participants. After conducting a one-sample t-test of the null hypothesis $\mathbb{E}(BI_2) = 0$, they concluded that the observed difference is significantly different from zero, *t*(25) = 2.74, *p* = .011.
 
-The effect is thus usually **operationalised** in term of **lower contingency judgement** about the blocked relative to the control cues.
+[^1]: See the [Dependent Variables](estimands-estimates.qmd) notebook for definition of BI~2~ and other blocking indexes used to estimate the effect of blocking in contingency learning experimental paradigms.
 
-The reasoning behind validity of this operationalisations is as follows:
+Although the authors do not directly provide estimates of effect variance and its standardised size, these metrics can be deduced from the information about the raw effect magnitude and *t*-test results.
 
-- $Assumption \ 1$\
-  Blocking is equivalent to slower learning about a blocked cue-outcome contingency `B→o1` compared to control cue-outcome contingency `C→o1`.
-- $Assumption \ 2$\
-  Learning about cue-outcome contingency monotonously maps onto cue-outcome decision probability (i.e., faster learning of the `A→o1` contingency increases `Pr(select(o1)|A)`) and cue-outcome contingency judgements (i.e., faster learning of the `A→o1` contingency increases ratings that `A` predicts `o1`).
-- $(Assumption \ 1 \land Assumption \ 2)$\
-  $\implies$ Reduced learning due to blocking maps onto cue-outcome decision probability and cue-outcome contingency judgements, which can thus be used as a valid behavioural measure of blocking.
+Firstly, the effect's standard deviation can be calculated from the test statistic, raw effect magnitude, and sample size:
 
-Consequently, if blocking takes place within an experiment, we can expect there to be a detectable `Pr(select(o1)|C) > Pr(select(o1)|B)` difference (or an equivalent cue-outcome contingency judgement difference).
+$$t = \frac{\bar{X}-\mu_0}{s/\sqrt{N}}$$ $$2.74 = \frac{2.03-0}{s/\sqrt{26}}$$ $$s = \frac{2.03\sqrt{26}}{2.74} \approx 3.78$$ Secondly, standardised effect size, Cohen's *d*, can be estimated via:
 
-Several ways to measure these quantities in the test stage, following the novel learning Stage 3, are available. The most straightforward method presents each cue separately and ask the participant either which outcome is more likely to follow the cue or how much is each outcome likely to occur following the cue. Subsequently, average of difference in differences between blocked and control cues with respect to outcomes they were pair with versus outcomes they were not paired with in Stage 3 is calculated.
-
-Assume there are blocking contingencies `B→o1`, control contingencies `C→o1` and two possible outcomes `o1` and `o2`. The blocking index (BI) is then defined as:
-
-$$BI_1 = \mathbb{E}[(P(o1|C)-P(o2|C))-(P(o1|B)-(P(o2|B))]$$
-
-where $P(y|X)$ indicate judgement likelihood of outcome $y$ given cue $X$, positive values indicate blocking, and higher values indicate higher magnitude of blocking.
-
-Another way, that is arguable more powerful in detecting blocking [@griffiths2009], is to present in the test stage cue compounds that pair blocked and control cues that were associated with different outcomes during Stage 3. This method leads to a two-alternative forced choice (2AFC) procedure.
-
-For instance, Assume there is a blocking contingency `B→o1` and control contingency `C→o2`. If, in the test stage, we present participants with a decision between `o1` and `o2` in a `BC→?` contingency, proportion of `o2` responses approximates the magnitude of blocking that took place during learning.
-
-@beesley2011 employed this second measure, with the addition of confidence rating following each decision in the test stage. After the participants selected one from `o1` and `o2` outcomes when presented with the `BC→?` contingency, they rated on a Likert scale their confidence on a scale from 1 ("Not confident at all") to 10 ("Very confident"). For each participant, the blocking index was then computed as:
-
-$$BI_2 = \mathbb{E}[Conf \times (I_{\{o2\}}-I_{\{o1\}})]$$
-
-where $Conf$ represents confidence rating on each trial, $I_{\{y\}}$ represents indicator function evaluated at participants response `y`, `o2` represents outcome option associated with the control cue, `o1` represents outcome option associated with the blocked cue, positive values indicate blocking, and higher values indicate higher magnitude of blocking.
-
-Since the primary aim of current experiment is to replicate @beesley2011's behavioural findings, **we adopt BI~2~ as the primary outcome measure**. Later, we introduce two other blocking indexes for the purpose of exploratory analysis.
-
-# Effect Size
-
-@beesley2011 reported mean blocking index $\mathbb{E}(BI_2) = +2.03$ across their sample of *N* = 26 participants. After conducting a one-sample t-test of the null hypothesis $\mathbb{E}(BI_2) = 0$, they concluded that the observed difference is significantly different from zero, *t*(25) = 2.74, *p* = .011.
-
-Although the authors do not directly provide data regarding effect variance and its size, these can be calculated based on the information about raw effect magnitude and t-test results.
-
-First, BI~2~ standard deviation can be deduced from the test statistic:
-
-$$t = \frac{\bar{X}-\mu_0}{s/\sqrt{N}}$$ $$2.74 = \frac{2.03-0}{s/\sqrt{26}}$$ $$s = \frac{2.03\sqrt{26}}{2.74} \approx 3.78$$
+$$d = \frac{t}{\sqrt{N-1}} = \frac{2.74}{\sqrt{26-1}} \approx 0.55$$
 
 ```{r magnitude-ci}
 x_bar <- 2.03
@@ -110,17 +117,7 @@ alpha <- .05
 
 ci_low <- x_bar - qt(alpha/2, n-1, lower.tail = FALSE) * s / sqrt(n)
 ci_upp <- x_bar + qt(alpha/2, n-1, lower.tail = FALSE) * s / sqrt(n)
-
-ci_txt <- sprintf(
-  "[%.2f, %.2f]",
-  round(ci_low, 2),
-  round(ci_upp, 2)
-)
 ```
-
-In terms of standardised effect size, Cohen's *d* can be estimated via:
-
-$$d = \frac{t}{\sqrt{N-1}} = \frac{2.74}{\sqrt{26-1}} \approx 0.55$$
 
 ```{r d-ci}
 d_est <- effectsize::t_to_d(
@@ -130,45 +127,112 @@ d_est <- effectsize::t_to_d(
   ci          = 1-alpha,
   alternative = "two.sided"
 )
-
-d <- sprintf(
-  "%.2f",
-  round(d_est$d, 2)
-)
-
-d_ci_txt <- sprintf(
-  "[%.2f, %.2f]",
-  round(d_est$CI_low, 2),
-  round(d_est$CI_high, 2)
-)
 ```
 
 Together, these lead to:
 
-- **Raw effect magnitude**: $\bar{X} = `r x_bar` \ `r ci_txt`$
-- **Standardised effect size**: $d = `r d` \ `r d_ci_txt`$
+- **Raw effect magnitude**: $\bar{X} = `r x_bar` \ `r print_ci(ci_low, ci_upp)`$
+- **Standardised effect size**: $d = `r print_d(d_est$d)` \ `r print_ci(d_est$CI_low, d_est$CI_high)`$
+
+## Other Studies
+
+To further evaluate the most likely values of the true effect size, we might look at experiments similar to the one we aim to replicate. Papers most similar in their experimental design to @beesley2011, are @lepelley2007 and @griffiths2009. The former introduced the three-stage design in its current form to address potential competing explanations such as memory interference, while the latter extended the design to evaluate to what degree does the blocking effect depend on the presence of the original blocking stimulus in Stage 3 learning.
+
+### @lepelley2007
+
+```{r lepelley2007-power}
+Fl <- 7
+nl <- 8
+pl <- pf(Fl, 1, nl-1, lower.tail = FALSE)
+
+d_lepel <- effectsize::F_to_d(
+  f = Fl,
+  df = 1,
+  df_error = nl - 1,
+  paired = TRUE,
+  ci = 1 - alpha,
+  alternative = "two.sided"
+)
+```
+
+@lepelley2007 measured blocking using a BI~1~ type of blocking index, with the exception that instead of evaluating predictive value of each cue separately, cue-compounds including either two blocked or two control cues associated with the same outcome were used.
+
+In a total of `r nl` participants, they observed a statistically significant blocking, *F*(1, `r nl-1`) = `r Fl`, p `r print_p(pl)`, translating to:
+
+- **Standardised effect size**: $d = `r print_d(d_lepel$d)` \ `r print_ci(d_lepel$CI_low, d_lepel$CI_high)`$
+
+### @griffiths2009
+
+@griffiths2009 measured blocking of the same structure, i.e., comparing blocked cues with novel control cues after Stage 3 learning, in their Experiment 1 and 3[^3].
+
+[^3]: Their Experiment2, although using 2AFC with BI~3~-like measure of blocking, omits the critical blocked cue vs. novel control cue comparisons.
+
+```{r griffiths1-power}
+tg1 <- 2.07
+ng1 <- 32
+pg1 <- 2 * pt(tg1, ng1-1, lower.tail = FALSE)
+
+d_grif1 <- effectsize::t_to_d(
+  t           = tg1,
+  df_error    = ng1 - 1,
+  paired      = TRUE,
+  ci          = 1 - alpha,
+  alternative = "two.sided"
+)
+```
+
+In Experiment 1, the effect was measured using BI~1~. Based on data from `r ng1` participants, @griffiths2009 observed a statistically significant blocking effect, *t*(`r ng1-1`) = `r tg1`, *p* `r print_p(pg1)`, translating to:
+
+- **Standardised effect size**: $d = `r print_d(d_grif1$d)` \ `r print_ci(d_grif1$CI_low, d_grif1$CI_high)`$
+
+```{r griffiths3-power}
+tg3 <- 5.03
+ng3 <- 40
+pg3 <- 2 * pt(tg3, ng3-1, lower.tail = FALSE)
+
+d_grif3 <- effectsize::t_to_d(
+  t           = tg3,
+  df_error    = ng3 - 1,
+  paired      = TRUE,
+  ci          = 1 - alpha,
+  alternative = "two.sided"
+)
+```
+
+Most relevantly, Experiment 3 of @griffiths2009 estimates blocking using a 2AFC procedure similar to that used by @beesley2011, employing an estimate similar to BI~3~ based on two test blocks per participant.
+
+Based on data from `r ng3` participants, @griffiths2009 observed a statistically significant blocking effect, *t*(`r ng3-1`) = `r tg3`, *p* `r print_p(pg3)`, translating to:
+
+- **Standardised effect size**: $d = `r print_d(d_grif3$d)` \ `r print_ci(d_grif3$CI_low, d_grif3$CI_high)`$
+
+## Summary
+
+| Study | Measure | Cohen's *d* [95% CI] |
+|:------|:-----|:--------------------|
+| ***@beesley2011*** | ***BI~2~*** | ***`r print_d(d_est$d)` `r print_ci(d_est$CI_low, d_est$CI_high)`*** |
+| @lepelley2007 | BI~1~ | `r print_d(d_lepel$d)` `r print_ci(d_lepel$CI_low, d_lepel$CI_high)` |
+| @griffiths2009, Exp. 1 | BI~1~ | `r print_d(d_grif1$d)` `r print_ci(d_grif1$CI_low, d_grif1$CI_high)` |
+| @griffiths2009, Exp. 3 | BI~3~ | `r print_d(d_grif3$d)` `r print_ci(d_grif3$CI_low, d_grif3$CI_high)` |
 
 # Retrospective Design Analysis
 
-In this section, I apply the @gelman2014 approach to retrospectively evaluating effect sizes observed in the literature to @beesley2011 associative blocking results.
-
-@gelman2014 discuss retrospective statistical design analysis in terms of classical statistical power and failure to detect existing effect (***Type 2 error***) as well as the probability of and estimate being in the wrong direction (***Type S*** *\[sign\]* **error**), and the factor by which magnitude of an effect might be overestimated (***Type M*** *\[magnitude\]* ***error***).
+@gelman2014 discuss retrospective statistical design analysis in terms of classical statistical power and failure to detect an existing effect (***Type 2 error***) as well as the probability of an estimate being in the wrong direction (***Type S*** *\[sign\]* **error**), and the factor by which magnitude of an effect might be overestimated (***Type M*** *\[magnitude\]* ***error***).
 
 The authors define design calculations as follows:
 
-- ***Statistical power***: the probability that an effect that would be observed in a hypothetical replication study exceeds threshold for statistical significance.
-- ***Type S error rate***: the probability that the replicated estimate has the incorrect[^1] sign, if is deemed statistically significant.
-- ***(expected) Type M error***: expectation of the absolute value of the replicated estimated divided by the true effect size, if the effect reaches statistical significance.
+- ***Statistical power*** is the probability that an effect that would be observed in a hypothetical replication study exceeds threshold for statistical significance.
+- ***Type S error rate*** is the probability that the replicated estimate has the incorrect sign[^2], if is deemed statistically significant.
+- ***(expected) Type M error*** is the expectation of the absolute value of the replicated estimated divided by the true effect size, if the effect reaches statistical significance.
 
-[^1]: Incorrect sign here means the sign opposite to the true population effect.
+[^2]: Incorrect sign here means the sign opposite to the true population effect.
 
 These three metrics can be, at least for comparison of means, estimated using:
 
 - ***A***: the (assumed) true effect size,
 - ***a***: the observed effect (in retrospective analysis), and
-- ***s***: standard error of the observed effect.
+- ***s***: the standard error of the observed effect.
 
-In the following section, we set ***A*** at $\bar{X}$, $\bar{X}/2$ and $\bar{X}/4$; ***a*** at $\bar{X}$; and ***s*** to $SEM$ (i.e., $SD / \sqrt(N)$) from @beesley2011 to evaluate statistical design of the original study.
+In the following section, we set ***A*** successively to $\bar{X}$, $\bar{X}/2$ and $\bar{X}/4$; ***a*** to $\bar{X}$; and ***s*** to $SEM$ (i.e., $SD / \sqrt(N)$) from @beesley2011 to evaluate statistical design of the original study.
 
 ```{r retro-power-func}
 compute_retro_power <- function(div) {
@@ -183,106 +247,71 @@ compute_retro_power <- function(div) {
 }
 ```
 
-```{r print-func}
-print_prob <- \(gc_obj, x) {
-  sprintf(
-    "%.1f%%",
-    round(100 * gc_obj$results[[x]], 1)
-  )
-}
-
-print_exag <- function(gc_obj) {
-  sprintf(
-    "%.2f",
-    round(gc_obj$results$type_m, 2)
-  )
-}
-
-print_d_est <- function(x, sd) {
-  sprintf(
-    "%.2f",
-    round(x / sd, 2)
-  )
-}
-```
-
-```{r retro-power-calc}
-retro_power_nominal <- compute_retro_power(1)
+```{r calc-retro-power}
+retro_power_full <- compute_retro_power(1)
 retro_power_half <- compute_retro_power(2)
 retro_power_quarter <- compute_retro_power(4)
 ```
 
 ## $A = \bar{X}$
 
-Let us assume that the effect size estimate of @beesley2011 is correct as is, i.e., A = a = `r round(x_bar, 2)`. Under this assumption, the statistical power of a hypothetical replication reaches `r print_prob(retro_power_nominal, "power")`, while the Type S error remains at `r print_prob(retro_power_nominal, "type_s")`, with the exaggeration ratio of `r print_exag(retro_power_nominal)`.
+Let us assume that the effect size estimate of @beesley2011 is exactly correct as is, i.e., A = a = `r round(x_bar, 2)`. Under this assumption, the design analysis of a hypothetical exact repliaction yields:
 
-```{r fig-retro-power-nominal}
-#| fig-cap: "Type S and Type M error curves. The red dot indicates statistics of the @beesley2011 article based on assumed true effect size being equal to the effect observed in the study."
-plot(retro_power_nominal)
+* Statistical power: **`r print_prob(retro_power_full, "power")`**
+* Type S error: **`r print_prob(retro_power_full, "type_s")`**
+* Exaggeration ratio: **`r print_exag(retro_power_full)`**
+
+```{r fig-retro-power-full}
+#| fig-cap: "Type S and Type M error curves. The red dot indicates statistics of the @beesley2011 article based on assumed true effect size being equal in magnitude to the effect size observed in the study."
+plot(retro_power_full)
 ```
 
 ## $A = \bar{X} / 2$
 
-Although it may seem intuitive to assume the true effect is equal in magnitude to the effect size observed in the original study, literature examining phenomena such as the "winner's curse" or reproducibility of studies indicate that published effect sizes are usually overestimated [@opensciencecollaboration2015; @vanzwet2021].
+Although it may seem intuitive to assume the true effect is equal in magnitude to the effect size observed in the original study, literature examining phenomena such as the "winner's curse" or replication crisis indicate that published effect sizes tend to be overestimated, i.e., larger than the true effect in the population [@opensciencecollaboration2015; @vanzwet2021].
 
-In 100 replications of experimental and correlational experimental studies, the @opensciencecollaboration2015 author team observed approximately halving of the effect sizes originally reported in the literature.
+In 100 replications of experimental and correlational psychological studies, the @opensciencecollaboration2015 author team observed effect sizes approximately half as large as the effects in the original reports from the literature.
 
-Following this line of reasoninig, let us assume that the true blocking effect is half in magnitude in that measured by @beesley2011, i.e., A = a/2 = `r round(x_bar/2, 2)`, d $\approx$ `r print_d_est(x_bar/2, s)`. In this case, the statistical power of a hypothetical exact replication substantially decreases to `r print_prob(retro_power_half, "power")`, while the Type S error remains low at `r print_prob(retro_power_half, "type_s")`, with the exaggeration ratio of `r print_exag(retro_power_half)`.
+Following this line of reasoning, let us assume that the true blocking effect is half in magnitude of that measured by @beesley2011, i.e., A = a/2 = `r round(x_bar/2, 2)`, d $\approx$ `r print_d_est(x_bar/2, s)`. In this case, the design analysis of a hypothetical exact replication yield:
+
+* Statistical power: **`r print_prob(retro_power_half, "power")`**
+* Type S error: **`r print_prob(retro_power_half, "type_s")`**
+* Exaggeration ratio: **`r print_exag(retro_power_half)`**
 
 ```{r fig-retro-power-half}
-#| fig-cap: "Type S and Type M error curves. The red dot indicates statistics of the @beesley2011 article based on assumed true effect size being equal to half of the the effect observed in the study."
+#| fig-cap: "Type S and Type M error curves. The red dot indicates statistics of the @beesley2011 article based on assumed true effect size being equal in magnitude to half of the effect size observed in the study."
 plot(retro_power_half)
 ```
 
 ## $A = \bar{X} / 4$
 
-Finally, given the relatively low replicability of psychological studies [@opensciencecollaboration2015], that does not avoid blocking experiments [@maes2016], combined with theoretical results indicating that most effects are bound to be small in magnitude [@tosh2025], it seems reasonable to evaluate the design under the assumption of even lower effect size.
+Finally, given the relatively low replicability of psychological studies [@opensciencecollaboration2015], previous failure to replicate blocking in animal experiments [@maes2016], and theoretical results indicating that most empirical effects are bound to be of small magnitudes in general [@tosh2025], it seems reasonable to evaluate the design under an assumption of even lower true effect size.
 
-Let us assume that the true blocking effect is fourth of that observed by @beesley2011, i.e., A = a/4 = `r round(x_bar/4, 2)`, d $\approx$ `r print_d_est(x_bar/4, s)`. This value falls close to the lower bound of the 95% CI estimated from the data from @beesley2011.
+Let us assume that the true blocking effect is one fourth of that observed by @beesley2011, i.e., A = a/4 = `r round(x_bar/4, 2)`, d $\approx$ `r print_d_est(x_bar/4, s)`. This value falls close to the lower bound of the 95% CI estimated from the data from @beesley2011.
 
-Under this assumption, the statistical power of a hypothetical exact replication decreases to `r print_prob(retro_power_quarter, "power")`, with the Type S error at `r print_prob(retro_power_quarter, "type_s")`, and the exaggeration ratio of `r print_exag(retro_power_quarter)`.
+Under this assumption, the desifn analysis of a hypothetical exact replication yields:
+
+* Statistical power: **`r print_prob(retro_power_quarter, "power")`**
+* Type S error: **`r print_prob(retro_power_quarter, "type_s")`**
+* Exaggeration ratio: **`r print_exag(retro_power_quarter)`**
 
 ```{r fig-retro-power-quarter}
-#| fig-cap: "Type S and Type M error curves. The red dot indicates statistics of the @beesley2011 article based on assumed true effect size being equal to quarter of the the effect observed in the study."
+#| fig-cap: "Type S and Type M error curves. The red dot indicates statistics of the @beesley2011 article based on assumed true effect size being in magnitude equal to quarter of the effect size observed in the study."
 plot(retro_power_quarter)
 ```
-
-# @griffiths2009
-
-Papers most similar in their experimental design to @beesley2011, are @lepelley2007 and @griffiths2009. The former introduced the three-stage design in its current form to address potential competing explanations of the effect in terms of memory interference, while the latter extended the design to evaluate to what degree does the blocking effect depend on the presence of the original blocking stimulus in Stage 3 learning. However, since @lepelley2007 used exclusively the BF~1~ estimate of blocking and their study contained just 8 participants, we focus our attention only to @griffiths2009 in this section.
-
-Most relevantly, Experiment 3 of @griffiths2009 estimates blocking using a procedure similar to the for BF~2~. 
 
 # Interim conclusion
 
 The statistical design of @beesley2011 behavioural blocking effect analysis seems to be robust to Type S error, while the Type 2 error, given their sample size of N = `r n`, is strongly dependent on true effect size.
 
-Adding to these results the findin that experiments tend to show lower effect size magnitudes in replications compare to their original publications [@opensciencecollaboration2015], previous failures to replicate blocking in animals [@maes2016], and the general assumption that single causal effects are bound to be smaller rather than larger [@tosh2025], it is safe to base power analysis for the current power analysis on assumed effect size ranging between $\bar{X}/4$ to $\bar{X}/2$, i.e., **Cohen's *d* ranging 0.15–0.30**.
+The effect sizes observed in similar, previous experiments, vary widely. Two of these exhibit large uncertainty [@lepelley2007] and relatively smaller effect [@griffiths2009 Exp. 1] with lower bound of their 95% CIs nearly zero. Admittedly, both experiments employed IB~1~ as their measure of blocking, which may be less sensitive to the phenomenon than IB~2~ or IB~3~.
+
+Experiment 3 of @griffiths2009 used IB~3~ and yielded relatively large effect size, larger than the one observed by @beesley2011.
+
+However, given the overall high variability of blocking effect sizes in three-stage design, combined with general patterns observed previously in replication attempts within the field [@opensciencecollaboration2015; [@maes2016], it appears to be safe to base the prospective power analysis for the current experiment on assumed effect size ranging between $\bar{X}/4$ to $\bar{X}/2$, i.e., **Cohen's *d* ranging 0.15–0.30**.
+
+After arriving at a sufficient sample size for adequate power assuming the effect sizes from this range, we additionaly present expected power for ***d* = 0.40** and ***d* = 0.50** as potential "best-case scenarios."
 
 ## Prospective power analysis
-
-```{r power-func}
-compute_n <- function(d, pwr, alpha) {
-  res <- pwrss.t.mean(
-    mu          = d,
-    sd          = 1,
-    mu0         = 0,
-    alpha       = alpha,
-    power       = pwr,
-    alternative = "greater",
-    verbose     = FALSE
-  )
-  ceiling(res$n)
-}
-```
-
-```{r power-calc}
-results <- expand.grid(
-  d = seq(0.15, 0.30, by = 0.005),
-  power = c(0.80, 0.90, 0.95, 0.99),
-  alpha = c(0.01, 0.05),
-  stringsAsFactors = FALSE
-)
-```
 
 # References
