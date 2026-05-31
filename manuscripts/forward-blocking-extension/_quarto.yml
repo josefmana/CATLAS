@@ -4,6 +4,8 @@ project:
 manuscript:
   article: index.qmd
   notebooks:
+    - notebook: notebooks/estimands-estimates.qmd
+      title: "Dependent Variables"
     - notebook: notebooks/replication-online-power.qmd
       title: "Experiment 1: Power Analysis"
     - notebook: notebooks/replication-online-prereg.qmd

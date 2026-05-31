@@ -1,0 +1,67 @@
+---
+title: "Attentional Shift versus Competition in Associative Blocking"
+subtitle: "Dependent Variables and Measures"
+authors:
+  - name: Josef Mana
+    id: jm
+    orcid: 0000-0002-7817-3978
+    email: mana@psu.cas.cz
+    affiliation:
+      - name: Institute of Psychology of the Czech Academy of Sciences
+        department: Cognitive Psychology
+        city: Prague
+        address: Pod Vodárenskou věží 4, Prague 18200
+        country: Czech Republic
+    roles: [conceptualization, data curation] 
+    corresponding: true
+bibliography: ../../../common/references.bib
+execute: 
+  echo: false
+---
+
+In their study of the effect of blocking on attention, @beesley2011 focused on three *estimands*:
+
+1.  average **behavioural blocking** effect in a contingency learning task,
+2.  average **attentional blocking** effect in a contingency learning task,
+3.  participant-wise **association** between the behavioural and attentional blocking.
+
+In this study, the focus is only on the first, behavioural *estimand*.
+
+The associational blocking was defined as *"**attenuated learning** of the contingency between a cue and an outcome, when that cue is trained in compound with a second cue that has previously been established as predictive of the outcome."* [@beesley2011, p. 114]
+
+Unlike studies using the canonical or standard blocking paradigms, @beesley2011 employed the three-stage design. In this study design, the researcher compares contingency learning of target cues blocked in Stage 2 (compound learning) to competing control (non-blocked) cues during Stage 3 (novel learning), in which both the outcome changes and the original (blocking) cues are no longer present (see the main text for a closer examination of this study paradigm and its comparisons to common alternatives).
+
+Blocking is then **defined** as **slower learning** about the blocked relative to the control cues. However, the learning contingencies in Stage 3 do not allow for direct measurement of the difference between learning about blocked and control cues, because in order to allow for blocking to happen, blocked and control that relate to the same outcomes are presented conjointly.
+
+The effect is thus usually **operationalised** in term of **lower contingency judgement** about the blocked relative to the control cues.
+
+The reasoning behind validity of this operationalisations is as follows:
+
+- $Premise \ 1$\
+  Blocking is equivalent to slower learning about a blocked cue-outcome contingency `B→o1` compared to control cue-outcome contingency `C→o1`.
+- $Premise \ 2$\
+  Learning about cue-outcome contingency monotonously maps onto cue-outcome decision probability (i.e., faster learning of the `A→o1` contingency increases `Pr(select(o1)|A)`) and cue-outcome contingency judgements (i.e., faster learning of the `A→o1` contingency increases ratings that `A` predicts `o1`).
+- $(Premise \ 1 \land Premise \ 2)$\
+  $\implies$ Reduced learning due to blocking maps onto cue-outcome decision probability and cue-outcome contingency judgements, which can thus be used as a valid behavioural measure of blocking.
+
+Consequently, if blocking takes place within an experiment, we can expect there to be a detectable `Pr(select(o1)|C) > Pr(select(o1)|B)` difference (or an equivalent cue-outcome contingency judgement difference).
+
+Several ways to measure these quantities in the test stage, following the novel learning Stage 3, are available. The most straightforward method presents each cue separately and ask the participant either which outcome is more likely to follow the cue or how much is each outcome likely to occur following the cue. Subsequently, average of difference in differences between blocked and control cues with respect to outcomes they were pair with versus outcomes they were not paired with in Stage 3 is calculated.
+
+Assume there are blocking contingencies `B→o1`, control contingencies `C→o1` and two possible outcomes `o1` and `o2`. The blocking index (BI) is then defined as:
+
+$$BI_1 = \mathbb{E}[(P(o1|C)-P(o2|C))-(P(o1|B)-(P(o2|B))]$$
+
+where $P(y|X)$ indicate judgement likelihood of outcome $y$ given cue $X$, positive values indicate blocking, and higher values indicate higher magnitude of blocking.
+
+Another way, that is arguable more powerful in detecting blocking [@griffiths2009], is to present in the test stage cue compounds that pair blocked and control cues that were associated with different outcomes during Stage 3. This method leads to a two-alternative forced choice (2AFC) procedure.
+
+For instance, Assume there is a blocking contingency `B→o1` and control contingency `C→o2`. If, in the test stage, we present participants with a decision between `o1` and `o2` in a `BC→?` contingency, proportion of `o2` responses approximates the magnitude of blocking that took place during learning.
+
+@beesley2011 employed this second measure, with the addition of confidence rating following each decision in the test stage. After the participants selected one from `o1` and `o2` outcomes when presented with the `BC→?` contingency, they rated on a Likert scale their confidence on a scale from 1 ("Not confident at all") to 10 ("Very confident"). For each participant, the blocking index was then computed as:
+
+$$BI_2 = \mathbb{E}[Conf \times (I_{\{o2\}}-I_{\{o1\}})]$$
+
+where $Conf$ represents confidence rating on each trial, $I_{\{y\}}$ represents indicator function evaluated at participants response `y`, `o2` represents outcome option associated with the control cue, `o1` represents outcome option associated with the blocked cue, positive values indicate blocking, and higher values indicate higher magnitude of blocking.
+
+Since the primary aim of current experiment is to replicate @beesley2011's behavioural findings, **we adopt BI~2~ as the primary outcome measure**. Later, we introduce two other blocking indexes for the purpose of exploratory analysis.

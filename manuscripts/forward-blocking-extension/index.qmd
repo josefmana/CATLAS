@@ -1,8 +1,8 @@
 ---
-title: Disentangling Attentional Shift and Attentional Competition Accounts of
-  Associative Blocking
-subtitle: Replication and Extension of Beesley & Le Pelley
-  ([2011](https://doi.org/10.1037/a0019526))
+title: "Disentangling Attentional Shift and Attentional Competition Accounts of
+  Associative Blocking"
+subtitle: "Replication and Extension of Beesley & Le Pelley
+  ([2011](https://doi.org/10.1037/a0019526))"
 authors:
   - name: Josef Mana
     id: jm
