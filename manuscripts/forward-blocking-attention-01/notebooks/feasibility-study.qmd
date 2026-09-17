@@ -1,0 +1,44 @@
+---
+title: "Attentional Shift versus Competition in Associative Blocking"
+subtitle: "Feasibility Study"
+authors:
+  - name: Josef Mana
+    id: jm
+    orcid: 0000-0002-7817-3978
+    email: mana@psu.cas.cz
+    affiliation:
+      - name: Institute of Psychology of the Czech Academy of Sciences
+        department: Cognitive Psychology
+        city: Prague
+        address: Pod Vodárenskou věží 4, Prague 18200
+        country: Czech Republic
+    roles: [conceptualization, data curation] 
+    corresponding: true
+bibliography: ../../../common/references.bib
+execute: 
+  echo: false
+---
+
+>In this notebook, I present results of the pilot study ran between 9^th^ and
+26^th^ June 2026 via JATOS on <https://mindprobe.eu>.
+
+# The experiment
+
+The study design was identical to the @beesley2011 replication of the three-phase
+forward blocking via allergy task described in the main text. The experimental
+code is recorded in the `catlaslab` repository under its release from 19^th^
+June 2026
+(<https://github.com/josefmana/catlaslab/releases/tag/fba-allergy-online-01>).
+
+::: {.callout-note title="Patch of June the 10^th^"}
+The first wave of data collection (9^th^&mdash;16^th^ June) which yielded four
+full data responses, included a minor bug in debriefing variables naming that
+was patched for the remaining participants. Consequently, the first four
+participants' data live in a different Mindprobe instance from the rest of the
+sample. However, since the code change does not alter the experimental data,
+data from both of these runs are treated identically in the following.
+:::
+
+# Participants
+
+# References

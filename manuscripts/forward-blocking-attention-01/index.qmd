@@ -104,7 +104,7 @@ attention models to a severe empirical testing [@mayo1991].
     they are popular.**
 
 Evidence for attentional mechanisms in blocking comes from several lines
-of research, including experimental manipulations of cue competition
+of inquiry, including experimental manipulations of cue competition
 [@lepelley2007; @beesley2011], eye-tracking studies of overt attention
 [@kruschke2005; @wills2007; @lepelley2007], behavioural measures of
 attentional bias [@liu2013; @luque2018], and computational simulations
@@ -114,6 +114,36 @@ work [@paskewitz2020], the present study designs an experimental
 procedure aimed at testing key predictions of learned-attention theories
 about blocking and its relation to attention.
 
+## Computational modelling {#sec-computational-models}
+
+Blocking elicited by the canonical blocking experimental designs can be
+explained by *standard* associative learning models without attentional
+components. For instance, @sewell2012 showed that when fitting the EXIT model
+[@kruschke2001] to data from the canonical blocking paradigm (see
+@tbl-design-01), the best-fitting attention parameters shrank toward zero,
+effectively reducing EXIT to the Rescorla–Wagner model [@rescorla1972]. In other
+words, the canonical forward blocking can be accommodated without invoking
+attentional mechanisms, even when such mechanisms are formally available
+within the model [however, cf. @liu2013].
+
+By contrast, *attention* is a necessary mechanism for associative models
+to account for blocking elicited by a more complex three-phase paradigm.
+@paskewitz2020 showed that within this type of paradigm, the EXIT model fails
+to reproduce blocking unless it includes at least one attentional mechanism
+(either rapid attentional shifts or attentional competition). Critically, when
+these mechanisms are combined, the model becomes overly flexible. Unlike its
+single-mechanism submodels, the full model can generate both the empirically
+observed pattern as well as its reversal.
+
+Rapid attentional shifting and attentional competition are thus best
+viewed as competing explanations of blocking, rather than complementary
+components of a single process. @paskewitz2020 propose a modification of
+the three-phase blocking paradigm designed to differentiate between
+these two accounts. However, empirical tests capable of doing so are
+still lacking.
+
+## Reproducibility of the effect
+
 In the animal learning literature, blocking is widely regarded as a
 cornerstone phenomenon, prompting strong claims such as that *"\[n\]o
 empirical finding in the study of animal learning has been of greater
@@ -122,90 +152,108 @@ theoretical importance than the phenomenon of blocking."*
 body of supporting evidence, @maes2016 were unable to detect the effect
 across fifteen replications of previously published rodent paradigms
 (see @soto2018 and @maes2018 for discussion of the implications of these
-findings). Given this elusive nature of the blocking phenomenon even in
-tightly controlled animal studies, it follows that any attempt to extend
-blocking paradigms in human contingency learning should be preceded by a
-rigorous replication of the original effect.
+findings). Given this elusive nature of the blocking phenomenon even in tightly
+controlled animal studies, it follows that any attempt to extend blocking
+paradigms in human contingency learning should be preceded by a rigorous
+replication of the original effect.
 
-## Study designs {#sec-designs}
+## Current study
+
+Given the importance of both forward blocking as a phenomenon and attentional
+mechanisms as a critical component of the associative models explaining it,
+this study aims to experimentally decide between the two primary attentional
+mechanisms of these models. In Experiment 1 we conduct a large-scale online
+replication of the original @beesley2011 results, to ensure the effect's
+replicability in the online environment and provide reasonable effect size
+estimates. Subsequently, Experiment 2 adjudicates between rapid attentional
+shifting and computational competition accounts of blocking, and Experiment 3
+tests its conclusions in formally identical study design with different task
+type.
+
+# Experiment 1 (replication) {#sec-online-replication}
 
 Although blocking is often treated as a single phenomenon, it can be
 elicited using several related but methodologically distinct
 experimental designs. These designs differ in how they set up cue
 competition, control for confounds and what inferences they permit about
-underlying mechanisms. @tbl-design-canonical summarises two
-representative designs used in prior research [@kruschke2005;
-@lepelley2007; @beesley2011; @sewell2012; @luque2018; see also
-@paskewitz2020; @paskewitz2023].
+underlying mechanisms. @tbl-design-01 summarises two representative designs used
+in prior research [@lepelley2007; @griffiths2009; @beesley2011].
 
 ```{r}
-#| label: tbl-design-canonical
-#| tbl-cap: Representative blocking experimental designs used by prior research.
+#| label: tbl-design-01
+#| tbl-cap: Representative forward blocking experimental designs.
 
-fb_designs |>
-  mutate(
-    design = factor(
-      case_when(
-        bibtex == "kruschke2005" ~ 1,
-        bibtex == "wills2005" ~ 2,
-        bibtex == "luque2018" ~ 3,
-        .default = NA
-      ),
-      levels = 1:3,
-      labels = c(
-        "Canonical",
-        "Standard",
-        "Novelty-controlled"
-      ),
-      ordered = TRUE
-    ),
-    across(ends_with("cue"), toupper)
-  ) |>
-  drop_na(design) |>
-  arrange(design) |>
-  select(!starts_with("stage3"), -bibtex) |>
+design_tab <- tibble::tribble(
+  ~design, ~stage1_cue, ~stage1_outcome, ~stage2_cue, ~stage2_outcome, ~stage3_cue, ~stage3_outcome, ~test_cue, ~test_outcome, ~test_preference,
+  "Standard"   , "A",  "+", "AB",  "+",   NA,   NA,  "B", "?",  "+",
+  "Standard"   , "C",  "-", "CD",  "+",   NA,   NA,  "D", "?",  "+",
+  "Standard"   , "E",  "-", "EF",  "-",   NA,   NA,   NA,  NA,   NA,
+  "Three-phase", "A", "o1", "AB", "o1", "BK", "o3", "BT", "?", "o4",
+  "Three-phase", "C", "o1", "CD", "o1", "DN", "o4", "DQ", "?", "o3",
+  "Three-phase", "E", "o2", "EF", "o2", "FQ", "o3", "FN", "?", "o4",
+  "Three-phase", "G", "o2", "GH", "o2", "HT", "o4", "HK", "?", "o3",
+  "Three-phase", "I", "o1", "IJ", "o1",   NA,   NA, "BN", "?", "o4",
+  "Three-phase", "L", "o1", "MN", "o1",   NA,   NA, "DK", "?", "o3",
+  "Three-phase", "0", "o2", "PQ", "o2",   NA,   NA, "FT", "?", "o4",
+  "Three-phase", "R", "o2", "ST", "o2",   NA,   NA, "HQ", "?", "o3"
+)
+
+design_tab |>
   gt(groupname_col = "design") |>
   sub_missing(missing_text = "---") |>
   cols_align(align = "center") |>
-  tab_spanner(label = "Stage 1", columns = starts_with("stage1")) |>
-  tab_spanner(label = "Stage 2", columns = starts_with("stage2")) |>
-  tab_spanner(label = "Test", columns = starts_with("test")) |>
+  tab_spanner(
+    label = "Phase 1",
+    columns = starts_with("stage1")
+  ) |>
+  tab_spanner(
+    label = "Phase 2",
+    columns = starts_with("stage2")
+  ) |>
+  tab_spanner(
+    label = "Phase 3",
+    columns = starts_with("stage3")
+  ) |>
+  tab_spanner(
+    label = "Test",
+    columns = starts_with("test")
+  ) |>
   cols_label(
-    ends_with("cue") ~ "Cues",
+    ends_with("cue") ~ "Cue",
     ends_with("outcome") ~ "Outcome",
     ends_with("preference") ~ "Preferred"
   ) |>
   catlasr::apa_style()
 ```
 
-The **canonical blocking design** [e.g., @kruschke2005; @sewell2012]
-captures the core logic of the phenomenon. In Stage 1, a (blocking) cue
-A is established as a reliable predictor of an outcome (o1). In Stage 2,
-A is presented in compound with a novel (blocked) cue B, paired with the
-same outcome. Although B is a valid predictor of o1, it is redundant
-because A already fully predicts the outcome. In a subsequent Test
-stage, participants are asked to choose between the outcome (o1)
-associated with the blocked cue B and an alternative outcome (o2)
-associated with a control cue D, which was not paired with a pretrained
-predictor. Participants typically prefer the outcome associated with the
-control cue. This difference constitutes the canonical blocking effect.
+The **standard blocking design** [e.g., @wills2007; @liu2013; @spicer2021]
+captures the core logic of the phenomenon. In the elemental training Phase 1, a
+(*blocking*) cue A is established as a reliable predictor of an outcome
+(designated by the A &rarr; + contingency in @tbl-design-01). At the same time,
+the participants learn that another cue C does not predict the outcome
+(C &rarr; -). In the subsequent compound training Phase 2, A is presented in
+compound with a novel (*blocked*) cue B, and D is presented in compound with a
+novel (*control*) cue C. Both compounds AB and CD are predictive of the outcome.
+Although B is thus a valid predictor of the outcome, it is redundant because A
+already fully predicts it. In a subsequent Test phase, participants are
+typically asked to evaluate predictive value of all presented cues. Participants
+typically rate B as less predictive of the outcome than D despite having the
+same statistical contingency with the outcome. This difference is what
+constitutes the canonical blocking effect.
 
-Despite its conceptual simplicity, this design is partially confounded
-by **cue novelty**. Specifically, the blocked cue B is introduced
-alongside a well-established predictor (A), whereas the control cue D is
-paired with another novel cue (C). This asymmetry makes it difficult to
-determine whether reduced learning about B reflects blocking per se or
-differences in how novel cues are processed within a compound.
-
-One approach to addressing this limitation is to introduce the
-competitor of the control cue during Stage 1 as a non-predictive
-pretrained stimulus [e.g., @luque2018]. This manipulation equates
-novelty across conditions, as both blocked and control cues are paired
-with pretrained stimuli. However, this solution introduces a different
-potential confound, as the control cue may appear more predictive by
-virtue of being compared with a known non-predictive cue, thereby
-inflating the apparent blocking effect (B-minus-D) without necessarily
-engaging the same underlying mechanisms.
+Several limitations of the standard blocking design motivated researchers to
+construct its alternatives. Firstly, since blocking cue A and its control
+counterpart C are coupled in Phase 1 with different outcomes, the design cannot
+differentiate between blocking due to relatively decreased rating of the blocked
+cue B and relatively increased rating of the control cue C [@chapman1991]. A
+commonly used alternative of the standard design omits presenting C in Phase 1
+[e.g., @kruschke2005; @sewell2012]. While this change controls for the
+confounding effect of Phase 1 training, it is partially confounded by **cue
+novelty**. Specifically, the blocked cue B is introduced alongside a
+well-established predictor (A), whereas the control cue D is paired with another
+novel cue (C). This asymmetry makes it difficult to determine whether reduced
+learning about B reflects blocking per se or differences in how novel cues are
+processed within a compound.
 
 A further limitation shared by both designs is that blocked and control
 cues are consistently paired with the same outcomes. While this allows
@@ -216,231 +264,162 @@ interference of cue-outcome associations (e.g., A-o1 interfering with
 B-o1 learning or memory) without requiring any change in the processing
 of the blocked cue itself.
 
-To address these issues, @lepelley2007 introduced a **three-stage**
+To address these issues, @lepelley2007 introduced a **three-phase**
 design in which both blocked and control cues are subsequently paired
-with novel outcomes in Stage 3, in the absence of previously trained
-competitors (see @tbl-design-three-stage). This modification has two
-important consequences.
-
-```{r}
-#| label: tbl-design-three-stage
-#| tbl-cap: The three-stage experimental design for studying blocking.
-
-fb_designs |>
-  mutate(across(ends_with("cue"), toupper)) |>
-  filter(bibtex == "lepelley2007") |>
-  select(-design, -bibtex) |>
-  gt() |>
-  sub_missing(missing_text = "---") |>
-  cols_align(align = "center") |>
-  tab_spanner(label = "Stage 1", columns = starts_with("stage1")) |>
-  tab_spanner(label = "Stage 2", columns = starts_with("stage2")) |>
-  tab_spanner(label = "Stage 3", columns = starts_with("stage3")) |>
-  tab_spanner(label = "Test", columns = starts_with("test")) |>
-  cols_label(
-    ends_with("cue") ~ "Cues",
-    ends_with("outcome") ~ "Outcome",
-    ends_with("preference") ~ "Preferred"
-  ) |>
-  catlasr::apa_style()
-```
-
-First, it attenuates the novelty confound. Because all critical cues are
-paired with new outcomes in Stage 3, and have comparable prior exposure,
-differences in learning are less readily attributable to novelty.
-Second, and more importantly, the design provides a more severe test of
-attentional accounts. By requiring previously blocked and control cues
-to support new learning, the design creates conditions under which any
-deficit in processing of blocked cues must generalise beyond the
-original contingency.
-
-Taken together, these findings suggest that the three-stage design
-places stronger constraints on theoretical accounts of blocking than
-canonical paradigms. In particular, it creates conditions under which
-attentional mechanisms are not merely sufficient but necessary to
-explain the data within a well-specified computational framework.
-Building on this logic, the present study adopts and extends this design
-to directly contrast predictions derived from competing attentional
-mechanisms. In particular, this increased severity becomes evident when
-evaluating formal models of learning, as discussed in the following
-section.
-
-## Computational modelling {#sec-compmods}
-
-Blocking elicited by the canonical design can be explained by *standard*
-associative learning models without attentional components. For
-instance, @sewell2012 showed that when fitting the EXIT model
-[@kruschke2001] to data from the canonical blocking paradigm, the
-best-fitting attention parameters shrank toward zero, effectively
-reducing EXIT to the Rescorla–Wagner model [@rescorla1972]. In other
-words, the canonical design can be accommodated without invoking
-attentional mechanisms, even when such mechanisms are formally available
-within the model [however, cf. @liu2013].
-
-By contrast, *attention* is a necessary mechanism for associative models
-to account for blocking elicited by the three-stage paradigm.
-@paskewitz2020 showed that within this paradigm, the EXIT model fails to
-reproduce blocking unless it includes at least one attentional mechanism
-(either rapid attentional shifts or attentional competition).
-Critically, when these mechanisms are combined, the model becomes overly
-flexible. Unlike its single-mechanism submodels, the full model can
-generate both the empirically observed pattern as well as its reversal.
-
-Rapid attentional shifting and attentional competition are thus best
-viewed as competing explanations of blocking, rather than complementary
-components of a single process. @paskewitz2020 propose a modification of
-the three-stage blocking paradigm designed to differentiate between
-these two accounts. However, empirical tests capable of doing so are
-still lacking.
-
-## Experiment 1 (replication) {#sec-online-replication}
-
-The three-stage procedure used to evaluate mechanisms of blocking by
-@paskewitz2020 was originally introduced by @lepelley2007. Later,
-@beesley2011 combined this design with eye-tracking to provide more
-direct evidence of reduced overt attention to blocked stimuli during
-both compound learning (Stage 2) and subsequent novel learning (Stage
-3).
+with novel outcomes in novel training Phase 3, in the absence of previously
+trained competitors. This modification has two important consequences. First,
+it attenuates the novelty confound. Because all critical cues are paired with
+new outcomes in Phase 3 and have comparable prior exposure, differences in
+learning are less readily attributable to novelty. Second, and more importantly,
+the design provides a more severe test of attentional accounts. By requiring
+previously blocked and control cues to support new learning, the design creates
+conditions under which any deficit in processing of blocked cues must generalise
+beyond the original contingency. Consequently, this type of "novel learning" is
+assumed to reflect cue-specific attention learning rather than direct
+cue-outcome associative one [e.g., @lepelley2007; @griffiths2009; @beesley2011;
+@uengoer2018]. The three-phase procedure was also used to evaluate mechanisms of
+blocking by @paskewitz2020, making it a natural design choice for experimental
+testing of attentional accounts of associative learning.
 
 Accordingly, we first aim to replicate the findings of @beesley2011 and
 then extend their experimental design following modifications proposed
 by @paskewitz2020. Because these modifications concern behavioural
 predictions and do not directly involve eye-tracking, we focus initially
-on replicating and extending behavioural patterns of the three-stage
+on replicating and extending behavioural patterns of the three-phase
 blocking paradigm. This approach allows us to leverage online sampling
 to substantially increase statistical efficiency before moving to more
 controlled laboratory studies.
 
-### Procedure {#sec-online-replication-procedure}
+## Method
+
+### Participants
+
+***Participants were recruited from the LABELS pool of Charles University
+students enrolled in ... and tested online via JATOS (<https://www.jatos.org>).***
+
+Sample size was estimated *a priori* following a power analysis based on
+previously published results and a feasibility pilot study ()
+
+### Procedure
 
 In this study, we closely follow the procedure used by @beesley2011,
 which was a variant of the allergy prediction task [@dickinson1996; 
 @lochmann2003]. Each trial consisted of presenting a case of a
 fictitious patient taking a vitamin pill containing certain chemicals
-(*cues*), and asking the participant which of two possible side effects
+(*cues*) and asking the participant which of two possible side effects
 (*outcomes*) the patient would suffer.
 
-The overall study design followed the three-stage paradigm shown in
-@tbl-design-three-stage, with chemicals randomly assigned to cues
-$A-\beta$, and side effects randomly assigned to outcomes $o1-o4$,
-independently for each participant. Critically, not only did the
-outcomes change between Stages 2 (compound learning) and 3 (novel
-learning), but Stage 3 also introduced a new patient, Mr. Y, replacing
-the previous patient, Mr. X.
+The overall study design followed the three-phase paradigm shown in the bottom
+of the @tbl-design-01, with chemicals randomly assigned to cues *A*-*&beta;*,
+and side effects randomly assigned to outcomes *o1*-*o4*, independently for
+each participant. Critically, not only did the outcomes change between Phases 2
+(compound learning) and 3 (novel learning), but Phase 3 also introduced a new
+patient, Mr. Y, replacing the previous patient, Mr. X.
 
-Stages 1–3 consisted of 10, 8, and 6 blocks, respectively, with each
-block containing one instance of each of the eight stage-specific trial
+Phases 1–3 consisted of 10, 8 and 6 blocks, respectively, with each
+block containing one instance of each of the eight phase-specific trial
 types. Trial types were randomised independently for each participant
 within each block, with the constraint that no trial type could be
 repeated consecutively across block boundaries.
 
-During the training stages (Stages 1–3; pre-training, compound learning,
-and novel learning, respectively), participants received immediate
-feedback about the correctness of their responses to facilitate
-learning. In the test phase, participants were presented with two
-chemicals and first selected the side effect they believed the patient
-would suffer, followed by a confidence rating for that judgement. No
-feedback was provided during the test phase.
+During the training phases (Phases 1–3; elemental learning, compound learning,
+and novel learning, respectively), participants received immediate feedback
+about the correctness of their responses to facilitate learning. In the test
+phase, participants were presented with two chemicals and first selected the
+side effect they believed the patient would suffer, followed by a confidence
+rating for that judgement. No feedback was provided during the test phase.
 
-### Stimuli {#sec-online-replication-stimuli}
+### Stimuli
 
-Cues ($A-\beta$) were randomly assigned names of 28 fictitious
-chemicals, separately for each participant. Because @beesley2011 do not
-provide a full list of chemicals used in their experiment, we used the
-available list from @lepelley2007, which employed a similar three-stage
-paradigm. As in @beesley2011, the following four side effects were
-randomly assigned to outcomes, separately for each participant:
-dizziness, itchiness, headache, and nausea. Outcomes $o1$ and $o2$ were
-always paired with Mr. X, whereas outcomes $o3$ and $o4$ were paired
-with Mr. Y.
+Cues (letters *A* to *&beta;* in @tbl-design-01) were randomly assigned names of
+28 fictitious chemicals, separately for each participant. Because @beesley2011
+do not provide a full list of chemicals used in their experiment, we used the
+available list from @lepelley2007, which employed a similar three-phase
+paradigm. As in @beesley2011, the following four side effects were randomly
+assigned to outcomes, separately for each participant: dizziness, itchiness,
+headache, and nausea. Outcomes *o1* and *o2* were always paired with Mr. X,
+whereas outcomes *o3* and *o4* were paired with Mr. Y.
 
 Cue stimuli consisted of words accompanied by a flask icon presented at
-the top of the screen ***(NOTE: give later more precise specification,
-either here or in appendix)***. Each training trial displayed either a
-single, horizontally centred chemical name (Stage 1) or two chemical
-names presented side-by-side (Stages 2–3), separated by ***some number
-of pixels*** and joined by a horizontally centred "&" symbol indicating
-a compound cue. The left–right order of cues in Stages 2–3 ***(NOTE: the
-test phase ... TBA)*** was counterbalanced within participants across
+the top of the screen. Each training trial displayed either a single,
+horizontally centred chemical name (Phase 1) or two chemical names presented
+side-by-side (Phases 2–3), separated by ***some number of pixels*** and joined
+by a horizontally centred "&" symbol indicating a compound cue. The left–right
+order of cues in Phases 2–3 was counterbalanced within participants across
 blocks.
 
-At the vertical midline, a prompt reading *"Which of the following
-reactions did the patient have?"* was displayed, followed by the
-instruction *"Click the picture of the reaction that you think, then
-click the OK button"* on the next line.
+At the vertical midline, a prompt reading *"Which of the following reactions did
+the patient have?"* was displayed, followed by the instruction *"Click the
+picture of the reaction that you think, then click the OK button"* on the next
+line.
 
 At the bottom of the screen, two images of the same patient (Mr. X in
-Stages 1–2; Mr. Y in Stage 3 and the test phase) were presented, each
-depicting one of the two possible side effects corresponding to the
-outcomes. The left–right mapping of outcomes was fixed, with outcomes
-$o1$ and $o3$ always presented on the left, and outcomes $o2$ and $o4$
-on the right. An OK button was displayed between the two images, centred
-horizontally. ***NOTE: Both images were generated by ... TBA.***
+Phases 1–2; Mr. Y in Phase 3 and the Test phase) were presented, each depicting
+one of the two possible side effects corresponding to the outcomes. The
+left–right mapping of outcomes was fixed, with outcomes *o1* and *o3* always
+presented on the left and outcomes *o2* and *o4* on the right. An OK button was
+displayed between the two images, centred horizontally.
 
-Participants selected their response by clicking on the image
-corresponding to the side effect they believed the patient would suffer.
-Upon selection, the chosen image was highlighted with a thin black
-frame. After confirming their choice by clicking the OK button, the
-response was recorded.
+Participants selected their response by clicking on the image corresponding to
+the side effect they believed the patient would suffer. Upon selection, the
+chosen image was highlighted with a thin black frame. After confirming their
+choice by clicking the OK button, the response was recorded.
 
-During training stages, feedback was provided immediately after each
-response. The word "Correct" (in green) was displayed following correct
-responses, and "Wrong" (in red) following incorrect responses, replacing
-the OK button. The correct response was additionally highlighted with a
-thick blue frame.
+During training stages, feedback was provided immediately after each response.
+The word "Correct" (in green) was displayed following correct responses and
+"Wrong" (in red) following incorrect responses, replacing the OK button. The
+correct response was additionally highlighted with a thick blue frame.
 
-In the test phase, responses were collected in the same manner, but no
-feedback was provided. Instead, after each response, participants were
-asked to rate their confidence on a scale from 1 ("Not confident at
-all") to 10 ("Very confident"). Each of the eight test trial types was
-presented twice in random order, with left–right configuration of cues
-counterbalanced independently for each participant. ***(NOTE:
-@beesley2011 presented each trial only once—reconsider whether the
-second presentation is justified; although it occurs after training, it
-may still introduce dependencies)***
+In the Test phase, responses were collected in the same manner, but no feedback
+was provided. Instead, after each response, participants were asked to rate
+their confidence on a scale from 1 ("Not confident at all") to 10 ("Very
+confident"). Each Test phase block was presented six times in random order,
+with left-right configuration of cues counterbalanced independently for each
+participant.^[Note that this marks a departure from the @beesley2011 study,
+which included a single Test phase block. However, the addition of Test phase
+repetitions allows for more thorough effect estimation without interfereing
+with the design being replicated.]
 
-### Measures {#sec-online-replication-measures}
+### Measures
 
-### Analysis {#sec-online-replication-analysis}
+#### Primary measure
 
-## Eperiment 2 (extension) {#sec-online-extension}
+In the standard blocking design, the following *blocking index* is typically
+used to estimate the effect:
 
-@tbl-blocking-extension shows the experimental design of @beesley2011
-after changes .
+$$BI_1 = \mathbb{E}[(P(o1|C)-P(o2|C))-(P(o1|B)-(P(o2|B))]$$ {#eq-bi-1}
 
-```{r}
-#| label: tbl-blocking-extension
-#| tbl-cap: Associational blocking experimental designs proposed by @paskewitz2020.
+where $P(y|X)$ indicate judgement likelihood of outcome *y* given cue *X*,
+positive values indicate blocking, higher values indicate higher magnitude of
+blocking, *B* and *C* represent all blocked and control cues, and *o1* and *o2*
+represent outcomes associated with control and blocked cues, respectively.
 
-tibble(
-  stage_1_cue = c("A", "C", "E", "G", "I", "L", "O", "R"),
-  stage_1_out = paste0("o", rep(c(rep(1, 2), rep(2, 2)), 2)),
-  stage_2_cue = c("AB", "CD", "EF", "GH", "JK", "MN", "PQ", "ST"),
-  stage_2_out = paste0("o", rep(c(rep(1, 2), rep(2, 2)), 2)),
-  stage_3_cue = c("BU", "DV", "FW", "HX", rep(NA, 4)),
-  stage_3_out = paste0("o", c(rep(3:4, 2), rep(NA, 4))),
-  test_cue = c("BX", "DW", "FV", "HU", "BV", "DU", "FX", "HW"),
-  test_out = "?",
-  test_pred_shift = paste0("o", rep(3:4, 4)),
-  test_pred_comp = paste0("o", rep(4:3, 4))
-) |>
-  gt() |>
-  sub_missing(missing_text = "") |>
-  cols_align(align = "center") |>
-  tab_spanner(label = "Stage 1", columns = starts_with("stage_1")) |>
-  tab_spanner(label = "Stage 2", columns = starts_with("stage_2")) |>
-  tab_spanner(label = "Stage 3", columns = starts_with("stage_3")) |>
-  tab_spanner(label = "Model Predictions", columns = contains("pred")) |>
-  tab_spanner(label = "Test", columns = starts_with("test")) |>
-  cols_label(
-    ends_with("cue") ~ "Cues",
-    ends_with("out") ~ "Outcome",
-    ends_with("shift") ~ "Shifting (RSWAC)",
-    ends_with("comp") ~ "Competition\n(CompAct)"
-  ) |>
-  catlasr::apa_style()
-```
+Another way, that is arguable more powerful in detecting blocking
+[@griffiths2009], is to present in the Test phase cue compounds that pair
+blocked and control cues that were associated with different outcomes during
+Phase 3, leading to a two-alternative forced choice (2AFC) procedure used here.
+Adding the confidence rating, @beesley2011 computed the following blocking
+index:
 
-## Eperiment 3 (generalisation) {#sec-online-generalisation}
+$$BI_2 = \mathbb{E}[Conf \times (I_{\{o2\}}-I_{\{o1\}})]$$ {#eq-bi-2}
+
+where *Conf* represents confidence rating on each trial, *I~{y}~* represents
+indicator function evaluated at participants response *y*, *o2* represents
+outcome option associated with the control cue, *o1* represents outcome option
+associated with the blocked cue, positive values indicate blocking, and higher
+values indicate higher magnitude of blocking. Given the fact that BI~2~
+comprised the estimate of the study under replication, it constitutes the
+**primary response** of Experiment 1.
+
+#### Calibration measure
+
+#### Calibration measure
+
+### Analysis
+
+# Experiment 2 (extension) {#sec-online-extension}
+
+
+# Experiment 3 (generalisation) {#sec-online-generalisation}
 
 ## References

@@ -5,11 +5,13 @@ manuscript:
   article: index.qmd
   notebooks:
     - notebook: notebooks/estimands-estimates.qmd
-      title: "Dependent Variables"
+      title: "1 · Dependent Variables"
+    - notebook: notebooks/feasibility-study.qmd
+      title: "2 · Feasibility Study"
     - notebook: notebooks/replication-online-power.qmd
-      title: "Experiment 1: Power Analysis"
+      title: "3 · Experiment 1: Power Analysis"
     - notebook: notebooks/replication-online-prereg.qmd
-      title: "Experiment 1: Pre-registration"
+      title: "4 · Experiment 1: Pre-registration"
 
 format:
   html:
