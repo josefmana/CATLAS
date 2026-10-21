@@ -24,10 +24,10 @@ execute:
 
 # The experiment
 
-The study design was identical to the @beesley2011 replication of the three-phase
-forward blocking via allergy task described in the main text. The experimental
-code is recorded in the `catlaslab` repository under its release from 19^th^
-June 2026
+The study design was identical to the @beesley2011 replication of the
+three-stage forward blocking via allergy task described in the main text. The
+experimental code is recorded in the `catlaslab` repository under its release
+from 19^th^ June 2026
 (<https://github.com/josefmana/catlaslab/releases/tag/fba-allergy-online-01>).
 
 ::: {.callout-note title="Patch of June the 10^th^"}
@@ -40,5 +40,18 @@ data from both of these runs are treated identically in the following.
 :::
 
 # Participants
+
+## Exclusion criteria
+
+::: {.callout-warning title="Learning checks"}
+Here, all participants that completed the experiment in full are included, and
+I do not apply any *a priori* learning checks to filter participants out. This
+decision is part of piloting. During data exploration, I aim to implement
+learning checks calculations, document them, and explore how changing their
+thresholds may or may not affect results. The exclusion-related goal of this
+study is to set-up reasonable learning-based exclusion criteria by exploring
+their impact on results in the pilot data set, so that the criteria can then be
+pre-registered for ensuing experiments.
+:::
 
 # References
