@@ -15,43 +15,445 @@ authors:
     roles: [conceptualization, data curation] 
     corresponding: true
 bibliography: ../../../common/references.bib
-execute: 
-  echo: false
+knitr:
+  opts_chunk:
+    message: false
 ---
 
->In this notebook, I present results of the pilot study ran between 9^th^ and
+>In this notebook, I present results of the pilot study run between 9^th^ and
 26^th^ June 2026 via JATOS on <https://mindprobe.eu>.
+
+```{r}
+#| label: envir-feasibility
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(gt)
+  library(catlasr)
+})
+
+# Search files in relation to the project repository directory, so that the code
+# remains renderable no matter where is it called from
+REPO <- rprojroot::find_root(rprojroot::has_file("CATLAS.Rproj"))
+
+# Formatting helpers shared by all manuscripts, and the tables and figures of
+# this notebook (listed at the end, in "Functions used in this notebook")
+source(file.path(REPO, "common", "R", "utils-print.R"))
+source(file.path(REPO, "manuscripts", "forward-blocking-attention-01", "R", "02-feasibility-study.R"))
+```
+
+```{r}
+#| label: data-feasibility
+# The three data bundles are written to the private folder
+# (`CATLAS_PRIVATE_DIR`) by the {catlasr} import vignette, rendered with
+# `params = list(save = TRUE)`. If any of them is missing, the
+# `read_private_rds()` will stop, naming the files the folder contains.
+fba_imported   <- read_private_rds("fba-allergy-online-01-imported.rds")    # Before any exclusion
+fba_structural <- read_private_rds("fba-allergy-online-01-structural.rds")  # Full sample
+fba_screened   <- read_private_rds("fba-allergy-online-01-screened.rds")    # Primary analysis
+
+prov <- provenance(fba_screened)
+
+# Recruitment channel of each JATOS batch
+channels <- tibble::tribble(
+  ~batch_id, ~channel,
+  30206L, "Family*",
+  30275L, "LABELS",
+  30832L, "Acquaintances",
+  30829L, "Family"
+) |>
+  mutate(channel = factor(channel, levels = channel))
+
+meta_imported <-
+  extract_meta(fba_imported) |>
+  mutate(id = as.character(id)) |>
+  left_join(channels, by = "batch_id")
+
+ids_structural <- as.character(extract_meta(fba_structural)$id)
+ids_screened <- as.character(extract_meta(fba_screened)$id)
+ids_labels <- meta_imported$id[meta_imported$batch_id == channels$batch_id[channels$channel == "LABELS"]]
+
+stage_labels <- c(
+  stage1 = "Stage 1",
+  stage2 = "Stage 2",
+  stage3 = "Stage 3",
+  test   = "Test"
+)
+learning_stages <- c("stage1", "stage2", "stage3")
+n_stage <- prov$blocks[learning_stages] * prov$trial_types
+```
 
 # The experiment
 
 The study design was identical to the @beesley2011 replication of the
-three-stage forward blocking via allergy task described in the main text. The
-experimental code is recorded in the `catlaslab` repository under its release
-from 19^th^ June 2026
+three-stage forward blocking via the allergy task described in the main text.
+The experimental code is recorded in the `catlaslab` repository under its
+release from 19^th^ June 2026
 (<https://github.com/josefmana/catlaslab/releases/tag/fba-allergy-online-01>).
 
 ::: {.callout-note title="Patch of June the 10^th^"}
-The first wave of data collection (9^th^&mdash;16^th^ June) which yielded four
-full data responses, included a minor bug in debriefing variables naming that
-was patched for the remaining participants. Consequently, the first four
-participants' data live in a different Mindprobe instance from the rest of the
-sample. However, since the code change does not alter the experimental data,
-data from both of these runs are treated identically in the following.
+The first wave of data collection (9^th^&ndash;16^th^ June), which ran on the
+build preceding the patch and yielded four full data responses, included a
+minor bug in debriefing variables naming that was patched for the remaining
+participants. Consequently, the first four participants' data live in a
+different Mindprobe instance from the rest of the sample. However, since the
+code change does not affect the experimental data, data from both of these runs
+are treated identically in the following text.
 :::
 
 # Participants
 
-## Exclusion criteria
+## Recruitment
 
-::: {.callout-warning title="Learning checks"}
-Here, all participants that completed the experiment in full are included, and
-I do not apply any *a priori* learning checks to filter participants out. This
-decision is part of piloting. During data exploration, I aim to implement
-learning checks calculations, document them, and explore how changing their
-thresholds may or may not affect results. The exclusion-related goal of this
-study is to set-up reasonable learning-based exclusion criteria by exploring
-their impact on results in the pilot data set, so that the criteria can then be
-pre-registered for ensuing experiments.
+```{r}
+#| label: recruitment
+n_records <- nrow(meta_imported)
+n_batches <- n_distinct(meta_imported$batch_id)
+n_prior <- sum(extract_meta(fba_structural)$prior_knowledge %in% TRUE)
+n_prior_others <- n_prior - 1L  # My own run is among the first batch
+```
+
+Participants were recruited through `r print_num_word(n_batches, FALSE)` JATOS
+batches, one per recruitment channel, including the LABELS participant pool, my
+acquaintances, and my family. Together, the batches recorded
+`r print_num_word(n_records, TRUE)` JATOS study results (@tbl-funnel).
+
+::: {.callout-warning title="The author is part of the sample"}
+I took part of the feasibility study myself, all while knowing the design and
+its hypotheses. I answered `"yes"` to the debriefing question on prior knowledge
+of similar experiments, as did `r print_num_word(n_prior_others, TRUE)` other
+participant`r if (n_prior_others == 1L) "" else "s"` of the full sample.
+Participants with prior knowledge stay in the primary analysis and are left out
+of one of the sensitivity analyses (see [Analysis sets](#sec-analysis-sets)).
+:::
+
+## Attrition and exclusions
+
+```{r}
+#| label: funnel
+rule_labels <- c(
+  no_jspsych_data = "No jsPsych data",
+  declined_consent = "Declined consent",
+  incomplete_run = "Incomplete run",
+  learning_not_reliably_above_chance = "No clear evidence of learning"
+)
+
+# Replays the exclusions recorded in provenance, in order, per channel
+funnel <- count_funnel(meta_imported, prov$exclusions, rule_labels)
+
+# The funnel must report the same number of participants as screened and
+# structural bundles do
+stopifnot(
+  identical(tail(funnel$Total, 1), length(ids_screened)),
+  identical(funnel$Total[nrow(funnel) - 1L], length(ids_structural))
+)
+
+ids_incomplete <- ids_excluded_by(prov$exclusions, "incomplete_run")
+ids_learning <- ids_excluded_by(prov$exclusions, "learning_not_reliably_above_chance")
+```
+
+```{r}
+#| label: tbl-funnel
+#| tbl-cap: "Participants remaining after each exclusion rule, by recruitment channel. Rules are applied in the order listed; a participant is counted under the first rule that removes them."
+tbl_funnel(funnel, levels(channels$channel))
+```
+
+```{r}
+#| label: progress
+# How far every participant got, read from the bundle as imported, so that the
+# excluded participants are present too
+progress <-
+  trace_progress(
+    fba_imported,
+    silence = TRUE
+  ) |>
+  left_join(
+    select(meta_imported, id, channel),
+    by = "id"
+  )
+
+stopped <- locate_stops(progress, ids_incomplete, stage_labels)
+
+n_test_blocks <- sum(prov$blocks[setdiff(names(prov$blocks), learning_stages)])
+partial_text <- write_partial_runs(
+  progress,
+  ids_structural,
+  n_test_blocks
+)
+```
+
+Of the runs that did not reach a complete test block,
+`r print_num_word(sum(stopped$n_trials == 0L), FALSE)` ended before the first
+learning trial, i.e., during the instructions or the tutorial, and
+`r print_num_word(sum(stopped$n_trials > 0L), FALSE)` during the learning stages
+or the test (@tbl-stopped). `r partial_text`
+
+```{r}
+#| label: tbl-stopped
+#| tbl-cap: "Where the runs excluded as incomplete stopped."
+tbl_stopped(stopped)
+```
+
+## Sample
+
+```{r}
+#| label: tbl-sample
+#| tbl-cap: "Sample characteristics of the full sample (complete runs) and of the primary analysis set (after the learning-based exclusion)."
+tbl_sample(fba_structural, fba_screened)
+```
+
+## Time on task
+
+```{r}
+#| label: time-on-task
+# Fixed durations of every learning trial, from `catlaslab`
+# (`config/timing.js` of the `fba-allergy-online-01` release)
+feedback_s <- 1.5
+iti_s <- 0.5
+fixed_min  <- sum(n_stage) * (feedback_s + iti_s) / 60
+
+times <-
+  progress |>
+  filter(id %in% ids_structural) |>
+  mutate(set = if_else(id %in% ids_screened, "Primary set", "Excluded on learning"))
+
+duration <- na.omit(times$duration_min)
+task <- times$task_min
+
+scores_full <- score_learning(fba_structural, silence = TRUE)
+
+timeouts <- count_timeouts(scores_full)
+
+test_timeouts <- sum(
+  extract_trials(fba_structural)$timed_out[extract_trials(fba_structural)$stage == "test"],
+  na.rm = TRUE
+)
+```
+
+The median run took `r print_min(median(duration))` minutes from start to end
+(interquartile range
+`r print_min(quantile(duration, .25))`&ndash;`r print_min(quantile(duration, .75))`,
+longest `r print_min(max(duration))`; @fig-time), counting only the
+`r print_num_word(length(duration), TRUE)` finished runs of the full sample,
+for which JATOS records a reliable end. Responding itself took a median of
+`r print_min(median(task))` minutes, and feedback and inter-trial intervals of
+the learning trials add a fixed `r print_min(fixed_min)` minutes. The rest of
+the run is spent on instructions, tutorials, the demography form and the
+debriefing.
+
+Every trial gave one minute to respond.
+`r stringr::str_to_sentence(print_num_word(sum(timeouts$n_timed_out > 0)))` of
+`r print_num_word(nrow(timeouts), TRUE)` participants let at least one learning trial
+time out, `r print_num_word(sum(timeouts$n_timed_out), TRUE)` of
+`r sum(timeouts$n_trials)` learning trials in total, and
+`r print_num_word(test_timeouts)` test trial`r if (test_timeouts == 1) "" else "s"`
+timed out.
+
+```{r}
+#| label: fig-time
+#| fig-cap: "Time on task in the full sample. *Whole run* is the wall-clock duration JATOS recorded (finished runs only); the other boxes sum response times only, over the whole experiment and per stage. Each point is a participant: blue points belong to the primary set, orange points were excluded on learning. Boxes show the median and interquartile range."
+#| fig-width: 8
+#| fig-height: 4
+fig_time(times, stage_labels)
+```
+
+## Learning {#sec-learning}
+
+```{r}
+#| label: learning-tests
+learning_alpha  <- 0.10
+
+tests_full <- test_learning(
+  scores_full,
+  alpha = learning_alpha,
+  silence = TRUE
+)
+
+screen_full <- screen_learning(
+  tests_full,
+  rule = "any",
+  silence = TRUE
+)
+
+# The notebook must reproduce the exclusion recorded at import
+stopifnot(setequal(screen_full$id[screen_full$exclude], ids_learning))
+
+# Cut-offs on complete data, and the probability that a participant guessing
+# throughout passes all three stages
+k_stage <- compute_cutoffs(learning_alpha, n_stage)
+p_guess <- prod(stats::pbinom(k_stage - 1, n_stage, 0.5, lower.tail = FALSE))
+
+stage_tests <- count_stage_passes(tests_full)
+
+excluded <-
+  screen_full |>
+  filter(exclude) |>
+  left_join(
+    select(meta_imported, id, channel),
+    by = "id"
+  )
+
+n_failed_s3 <- sum(grepl("stage3", excluded$failed_stages))
+```
+
+@fig-learning-group shows the learning curves of the primary set. To decide
+whether each participant learned, I tested,
+for every participant and stage, whether the number of correct responses
+exceeded what guessing would plausibly produce, with a one-sided exact binomial
+test against 0.5 at $\alpha$ = `r sprintf("%.2f", learning_alpha)` over all
+answered trials of the stage. On complete data, this requires at least
+`r k_stage[1]` of `r n_stage[1]` correct responses in Stage 1, `r k_stage[2]` of
+`r n_stage[2]` in Stage 2 and `r k_stage[3]` of `r n_stage[3]` in Stage 3. A
+participant who guesses throughout passes all three stages with probability
+`r sprintf("%.4f", p_guess)`.
+
+```{r}
+#| label: fig-learning-group
+#| fig-cap: "Learning curves of the primary set: mean accuracy per block, with error bars of one between-participant standard error each way. In Stages 1 and 2, orange marks the blocking cues and blue the control cues; in Stage 3, pink marks the critical compounds (one previously blocked and one control cue, `legit` in the data) and green the filler compounds. The dashed line marks chance."
+#| fig-width: 8
+#| fig-height: 3.5
+# {catlasr} functions are deliberately garrulous to warn about all the pitfalls
+# coming with them; this is no the place for such a chat, so we suppress it
+suppressMessages(plot_learning(score_learning(fba_screened)))
+```
+
+```{r}
+#| label: tbl-stage-tests
+#| tbl-cap: "Participants of the full sample whose accuracy was significantly above chance, per learning stage."
+tbl_stage_tests(stage_tests, k_stage, n_stage, stage_labels)
+```
+
+Of the `r print_num_word(nrow(screen_full))` participants of the full sample,
+`r print_num_word(nrow(excluded))` failed at least one stage and
+`r if (nrow(excluded) == 1L) "was" else "were"` excluded
+(@tbl-learning-excluded). Stage 3, the stage with the fewest trials and the
+last one before the test, was failed by `r print_num_word(n_failed_s3)` of them.
+
+```{r}
+#| label: tbl-learning-excluded
+#| tbl-cap: "Participants excluded on learning, with every failed stage."
+tbl_learning_excluded(excluded)
+```
+
+::: {.callout-note collapse="true" title="Individual learning curves"}
+```{r}
+#| label: fig-learning-participants
+#| fig-cap: "Learning curves of every participant of the full sample, one row each; participants excluded on learning are drawn in greys, dark for blocking cues and critical compounds, light for control cues and fillers. Other colours as in @fig-learning-group."
+#| fig-width: 8
+#| fig-height: !expr 1.1 * length(ids_structural) + 0.8
+fig_learning_participants(scores_full, ids_learning)
+```
+:::
+
+### Sensitivity to $\alpha$
+
+```{r}
+#| label: alpha-sensitivity
+alphas <- c(0.01, 0.025, 0.05, 0.10, 0.20)
+sensitivity <- screen_alphas(
+  scores_full,
+  alphas,
+  n_stage,
+  ids_labels
+)
+```
+
+The choice of $\alpha$ sets how much evidence of learning a participant has to
+give. @tbl-alpha shows the cut-offs and the participants kept at five levels.
+At $\alpha$ = `r sprintf("%.2f", learning_alpha)`, the cut-offs correspond to
+`r sprintf("%.1f%%", 100 * k_stage[1] / n_stage[1])`,
+`r sprintf("%.1f%%", 100 * k_stage[2] / n_stage[2])` and
+`r sprintf("%.1f%%", 100 * k_stage[3] / n_stage[3])` correct in Stages 1 to 3,
+close to the 60% criterion of @lepelley2005.
+
+```{r}
+#| label: tbl-alpha
+#| tbl-cap: "Cut-offs (correct of all trials, on complete data) and participants of the full sample kept by the learning-based exclusion rule at different levels of $\\alpha$."
+tbl_alpha(sensitivity, learning_alpha)
+```
+
+## Exclusion rules for `fba-allergy-online-02`
+
+The rules below were applied to the pilot in the order listed, and their wording
+is taken verbatim from the provenance record of the data, so that what is
+pre-registered for `fba-allergy-online-02` is exactly what was applied here. A
+participant is counted under the first rule that removes them.
+
+```{r}
+#| label: rules
+#| results: asis
+cat(write_rules(prov$exclusions, rule_labels), sep = "\n")
+```
+
+The last rule is decided from learning-stage data only; no test-stage response
+enters it, so it is blind to the primary endpoint. None of the three published
+studies closest to this design tested Stage 3 against chance: @beesley2011 and
+@lepelley2007 used no learning criterion, and @griffiths2009 excluded only
+participants at or below 50% correct over the final five blocks of any stage.
+
+## Analysis sets {#sec-analysis-sets}
+
+```{r}
+#| label: tbl-analysis-sets
+#| tbl-cap: "Analysis sets of the pilot. Sets 3 and 4 filter the primary set by participant metadata; they are not exclusions and are not recorded in provenance."
+meta_screened <- extract_meta(fba_screened)
+tbl_analysis_sets(meta_screened, ids_structural, ids_labels)
+```
+
+The primary set answers the research question; the full sample shows how much
+the learning-based exclusion changes the estimates; the set without prior
+knowledge removes, among others, my own run; and the LABELS set describes the
+pool from which `fba-allergy-online-02` recruits.
+
+## Implications for `fba-allergy-online-02`
+
+```{r}
+#| label: yield
+n_kept <- length(ids_screened)
+n_complete <- length(ids_structural)
+n_rec_labels <- length(ids_labels)
+n_kept_labels <- sum(ids_screened %in% ids_labels)
+starts_per_kept <- n_records / n_kept
+starts_per_kept_low <- 1 / stats::binom.test(n_kept, n_records)$conf.int[1]
+```
+
+Of all JATOS records, `r print_n_pct(n_kept, n_records)` entered the primary
+analysis (`r print_ci_pct(n_kept, n_records)`); of the complete runs,
+`r print_n_pct(n_kept, n_complete)` (`r print_ci_pct(n_kept, n_complete)`). In
+the LABELS batch alone, `r print_n_pct(n_kept_labels, n_rec_labels)` of records
+were analysed. Because `fba-allergy-online-02` is powered for participants
+whose data survive the exclusion rules, every analysed participant takes about
+`r sprintf("%.1f", starts_per_kept)` started runs, and up to
+`r sprintf("%.1f", starts_per_kept_low)` at the lower end of the confidence
+interval. The pilot sample was small and drawn partly from my family
+and acquaintances, so these figures are a rough guide for the sampling plan
+rather than a forecast.
+
+::: {.callout-note collapse="true" title="Functions used in this notebook"}
+The tables, figures and formatting helpers of this notebook are functions,
+sourced at its start from `common/R/utils-print.R` (shared by all manuscripts)
+and `manuscripts/forward-blocking-attention-01/R/02-feasibility-study.R`. Their
+code is shown here, not run again.
+
+```{r}
+#| label: code-utils-print
+#| file: !expr file.path(REPO, "common", "R", "utils-print.R")
+#| echo: true
+#| eval: false
+```
+
+```{r}
+#| label: code-feasibility
+#| file: !expr file.path(REPO, "manuscripts", "forward-blocking-attention-01", "R", "02-feasibility-study.R")
+#| echo: true
+#| eval: false
+```
+:::
+
+::: {.callout-note collapse="true" title="Session info"}
+```{r}
+#| label: feasibility-session-info
+sessioninfo::session_info()
+```
 :::
 
 # References
