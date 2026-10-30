@@ -20,33 +20,59 @@ knitr:
     message: false
 ---
 
->In this notebook, I present results of the pilot study run between 9^th^ and
-26^th^ June 2026 via JATOS on <https://mindprobe.eu>.
+>In this notebook, I present the results of the pilot study run between 9^th^
+and 26^th^ June 2026 via JATOS on <https://mindprobe.eu>.
 
+::: {.callout-note collapse="true" title="R code: Set-up"}
 ```{r}
-#| label: envir-feasibility
+#| label: feasibility-envir
 suppressPackageStartupMessages({
   library(tidyverse)
   library(gt)
   library(catlasr)
 })
 
-# Search files in relation to the project repository directory, so that the code
-# remains renderable no matter where is it called from
+# Search files in relation to the project repository
+# directory, so that the code remains renderable no
+# matter where it is called from
 REPO <- rprojroot::find_root(rprojroot::has_file("CATLAS.Rproj"))
 
-# Formatting helpers shared by all manuscripts, and the tables and figures of
-# this notebook (listed at the end, in "Functions used in this notebook")
+# Formatting helpers shared by all manuscripts, and the
+# tables and figures of this notebook (listed at the end, in "Functions used in this notebook")
 source(file.path(REPO, "common", "R", "utils-print.R"))
 source(file.path(REPO, "manuscripts", "forward-blocking-attention-01", "R", "02-feasibility-study.R"))
 ```
+:::
 
+# The experiment
+
+The study design was identical to the @beesley2011 replication of the
+three-stage forward blocking via the modified allergist task described in the
+main text. The experimental code is recorded in the `catlaslab` repository under
+its release from 19^th^ June 2026
+(<https://github.com/josefmana/catlaslab/releases/tag/fba-allergy-online-01>).
+
+::: {.callout-tip title="Patch of 10^th^ June"}
+The first wave of data collection (9^th^&ndash;16^th^ June), which ran on the
+build preceding the patch and yielded four complete data sets (three collected
+on 9^th^ and one on 16^th^ June), contained a minor bug in the naming of the
+debriefing variables. The bug was patched on 10^th^ June and the patch build
+released on 19^th^ June and ran by the remaining participants. Consequently,
+the first four participants' data live in a different Mindprobe instance from
+the rest of the sample. However, since the code change does not affect the
+experimental data, data from both builds are treated identically in the
+following text.
+:::
+
+# Participants
+
+::: {.callout-note collapse="true" title="R code: Data import"}
 ```{r}
-#| label: data-feasibility
+#| label: feasibility-data
 # The three data bundles are written to the private folder
 # (`CATLAS_PRIVATE_DIR`) by the {catlasr} import vignette, rendered with
 # `params = list(save = TRUE)`. If any of them is missing, the
-# `read_private_rds()` will stop, naming the files the folder contains.
+# `read_private_rds()` will stop and name the files the folder contains.
 fba_imported   <- read_private_rds("fba-allergy-online-01-imported.rds")    # Before any exclusion
 fba_structural <- read_private_rds("fba-allergy-online-01-structural.rds")  # Full sample
 fba_screened   <- read_private_rds("fba-allergy-online-01-screened.rds")    # Primary analysis
@@ -56,17 +82,19 @@ prov <- provenance(fba_screened)
 # Recruitment channel of each JATOS batch
 channels <- tibble::tribble(
   ~batch_id, ~channel,
-  30206L, "Family*",
+  30206L, "Contacts",
   30275L, "LABELS",
-  30832L, "Acquaintances",
-  30829L, "Family"
+  30832L, "Contacts",
+  30829L, "Contacts"
 ) |>
-  mutate(channel = factor(channel, levels = channel))
+  mutate(channel = factor(channel, levels = unique(channel)))
 
 meta_imported <-
   extract_meta(fba_imported) |>
   mutate(id = as.character(id)) |>
   left_join(channels, by = "batch_id")
+
+meta_screened <- extract_meta(fba_screened)
 
 ids_structural <- as.character(extract_meta(fba_structural)$id)
 ids_screened <- as.character(extract_meta(fba_screened)$id)
@@ -82,59 +110,44 @@ learning_stages <- c("stage1", "stage2", "stage3")
 n_stage <- prov$blocks[learning_stages] * prov$trial_types
 ```
 
-# The experiment
-
-The study design was identical to the @beesley2011 replication of the
-three-stage forward blocking via the allergy task described in the main text.
-The experimental code is recorded in the `catlaslab` repository under its
-release from 19^th^ June 2026
-(<https://github.com/josefmana/catlaslab/releases/tag/fba-allergy-online-01>).
-
-::: {.callout-note title="Patch of June the 10^th^"}
-The first wave of data collection (9^th^&ndash;16^th^ June), which ran on the
-build preceding the patch and yielded four full data responses, included a
-minor bug in debriefing variables naming that was patched for the remaining
-participants. Consequently, the first four participants' data live in a
-different Mindprobe instance from the rest of the sample. However, since the
-code change does not affect the experimental data, data from both of these runs
-are treated identically in the following text.
-:::
-
-# Participants
-
-## Recruitment
-
 ```{r}
-#| label: recruitment
+#| label: feasibility-recruitment
+# Values calculated here are then used to automagically fill in the ensuing text
 n_records <- nrow(meta_imported)
 n_batches <- n_distinct(meta_imported$batch_id)
 n_prior <- sum(extract_meta(fba_structural)$prior_knowledge %in% TRUE)
-n_prior_others <- n_prior - 1L  # My own run is among the first batch
+n_prior_others <- n_prior - 1L  # My own run is in the first batch
 ```
+:::
+
+## Recruitment
 
 Participants were recruited through `r print_num_word(n_batches, FALSE)` JATOS
-batches, one per recruitment channel, including the LABELS participant pool, my
-acquaintances, and my family. Together, the batches recorded
-`r print_num_word(n_records, TRUE)` JATOS study results (@tbl-funnel).
+batches, one for the LABELS pool, one for my acquaintances and two for my family
+(one before and one after the patch of the debriefing question). The latter
+two groups are referred to from now on as *Contacts*, as the important
+distinction is that between channels of recruitment. Together, the batches
+recorded `r print_num_word(n_records, TRUE)` JATOS study results (see the table
+below).
 
-::: {.callout-warning title="The author is part of the sample"}
-I took part of the feasibility study myself, all while knowing the design and
+::: {.callout-important title="The author is part of the sample"}
+I took part in the feasibility study myself, all while knowing the design and
 its hypotheses. I answered `"yes"` to the debriefing question on prior knowledge
 of similar experiments, as did `r print_num_word(n_prior_others, TRUE)` other
 participant`r if (n_prior_others == 1L) "" else "s"` of the full sample.
-Participants with prior knowledge stay in the primary analysis and are left out
-of one of the sensitivity analyses (see [Analysis sets](#sec-analysis-sets)).
+Participants with prior knowledge stay in the primary analysis of the
+feasibility study and are left out of one of the sensitivity analyses (see
+[Analysis sets](#sec-analysis-sets)).
 :::
 
-## Attrition and exclusions
-
+::: {.callout-note collapse="true" title="R code: Attrition funnel"}
 ```{r}
-#| label: funnel
+#| label: feasibility-attrition-funnel
 rule_labels <- c(
   no_jspsych_data = "No jsPsych data",
   declined_consent = "Declined consent",
   incomplete_run = "Incomplete run",
-  learning_not_reliably_above_chance = "No clear evidence of learning"
+  learning_not_reliably_above_chance = "Insufficient learning"
 )
 
 # Replays the exclusions recorded in provenance, in order, per channel
@@ -152,15 +165,9 @@ ids_learning <- ids_excluded_by(prov$exclusions, "learning_not_reliably_above_ch
 ```
 
 ```{r}
-#| label: tbl-funnel
-#| tbl-cap: "Participants remaining after each exclusion rule, by recruitment channel. Rules are applied in the order listed; a participant is counted under the first rule that removes them."
-tbl_funnel(funnel, levels(channels$channel))
-```
-
-```{r}
-#| label: progress
-# How far every participant got, read from the bundle as imported, so that the
-# excluded participants are present too
+#| label: feasibility-progress
+# How far every participant got, read from the data bundle as imported, so that
+# the excluded participants are present and counted too
 progress <-
   trace_progress(
     fba_imported,
@@ -174,6 +181,9 @@ progress <-
 stopped <- locate_stops(progress, ids_incomplete, stage_labels)
 
 n_test_blocks <- sum(prov$blocks[setdiff(names(prov$blocks), learning_stages)])
+
+# Detect partial runs, i.e., those with some but not all data, and compute the
+# values filled into the text of the next section
 partial_text <- write_partial_runs(
   progress,
   ids_structural,
@@ -181,30 +191,8 @@ partial_text <- write_partial_runs(
 )
 ```
 
-Of the runs that did not reach a complete test block,
-`r print_num_word(sum(stopped$n_trials == 0L), FALSE)` ended before the first
-learning trial, i.e., during the instructions or the tutorial, and
-`r print_num_word(sum(stopped$n_trials > 0L), FALSE)` during the learning stages
-or the test (@tbl-stopped). `r partial_text`
-
 ```{r}
-#| label: tbl-stopped
-#| tbl-cap: "Where the runs excluded as incomplete stopped."
-tbl_stopped(stopped)
-```
-
-## Sample
-
-```{r}
-#| label: tbl-sample
-#| tbl-cap: "Sample characteristics of the full sample (complete runs) and of the primary analysis set (after the learning-based exclusion)."
-tbl_sample(fba_structural, fba_screened)
-```
-
-## Time on task
-
-```{r}
-#| label: time-on-task
+#| label: feasibility-time-on-task
 # Fixed durations of every learning trial, from `catlaslab`
 # (`config/timing.js` of the `fba-allergy-online-01` release)
 feedback_s <- 1.5
@@ -228,29 +216,79 @@ test_timeouts <- sum(
   na.rm = TRUE
 )
 ```
-
-The median run took `r print_min(median(duration))` minutes from start to end
-(interquartile range
-`r print_min(quantile(duration, .25))`&ndash;`r print_min(quantile(duration, .75))`,
-longest `r print_min(max(duration))`; @fig-time), counting only the
-`r print_num_word(length(duration), TRUE)` finished runs of the full sample,
-for which JATOS records a reliable end. Responding itself took a median of
-`r print_min(median(task))` minutes, and feedback and inter-trial intervals of
-the learning trials add a fixed `r print_min(fixed_min)` minutes. The rest of
-the run is spent on instructions, tutorials, the demography form and the
-debriefing.
-
-Every trial gave one minute to respond.
-`r stringr::str_to_sentence(print_num_word(sum(timeouts$n_timed_out > 0)))` of
-`r print_num_word(nrow(timeouts), TRUE)` participants let at least one learning trial
-time out, `r print_num_word(sum(timeouts$n_timed_out), TRUE)` of
-`r sum(timeouts$n_trials)` learning trials in total, and
-`r print_num_word(test_timeouts)` test trial`r if (test_timeouts == 1) "" else "s"`
-timed out.
+:::
 
 ```{r}
-#| label: fig-time
-#| fig-cap: "Time on task in the full sample. *Whole run* is the wall-clock duration JATOS recorded (finished runs only); the other boxes sum response times only, over the whole experiment and per stage. Each point is a participant: blue points belong to the primary set, orange points were excluded on learning. Boxes show the median and interquartile range."
+#| label: tbl-feasibility-funnel
+#| tbl-cap: "Participants remaining after application of each exclusion rule, stratified by recruitment channel. Rules are applied in the order listed and a participant is counted under the first rule that removes them."
+tbl_funnel(funnel, levels(channels$channel))
+```
+
+## Attrition and exclusions
+
+Of the runs that did not reach a complete test block,
+`r print_num_word(sum(stopped$n_trials == 0L), FALSE)` ended before the first
+learning trial, i.e., during the instructions or the tutorial, and
+`r print_num_word(sum(stopped$n_trials > 0L), FALSE)` during the learning stages
+or the test (see the table below). `r partial_text`
+
+```{r}
+#| label: tbl-feasibility-stopped
+#| tbl-cap: "Progress of the participants excluded for an incomplete run."
+tbl_stopped(stopped)
+```
+
+::: {.callout-warning title="Unstable internet connection patch"}
+Note that although both incomplete data sets from the *Contacts* group simply
+did not reach the experimental trials, both *LABELS* participants excluded for
+the same reason have a non-negligible amount of experimental data. Upon closer
+examination of the data and jsPsych code, I found out that the code of the
+`fba-allergy-online-01` release sends data trial-by-trial, but does not upload
+the full data set again after the experiment has finished, despite having it
+saved locally. At the same time, the experiment code is preloaded on the
+participant's computer.
+
+Consequently, when the participant loses rheir internet connection, no data
+reach JATOS, while the study runs uninterrupted on the participant's side. The
+unfortunate consequence of this set-up is that participants who went through the
+experiment in full, but were plagued by an unstable internet connection, did not
+send all their data and were thus excluded from the primary analysis.
+
+To prevent this issue, the experimental code **is going to be patched soon.**
+:::
+
+## Sample
+
+```{r}
+#| label: tbl-feasibility-sample
+#| tbl-cap: "Summary characteristics of the full sample (complete runs) and of the primary analysis set (after the learning-based exclusion)."
+tbl_sample(fba_structural, fba_screened)
+```
+
+## Time on task
+
+Out of the `r print_num_word(length(duration), TRUE)` finished runs of the full
+sample, the median time to completion was `r print_min(median(duration))`
+minutes from start to end (interquartile range
+`r print_min(quantile(duration, .25))`&ndash;`r print_min(quantile(duration, .75))`,
+maximum `r print_min(max(duration))`). Responding itself took a median of
+`r print_min(median(task))` minutes, with feedback and inter-trial intervals of
+the learning trials adding a fixed `r print_min(fixed_min)` minutes. The rest of
+the run was spent on instructions, tutorials, the demographic form and the
+debriefing.
+
+Participants had one minute to respond on every trial.
+`r stringr::str_to_sentence(print_num_word(sum(timeouts$n_timed_out > 0)))` of
+`r print_num_word(nrow(timeouts), TRUE)` participants had at least one timed-out
+learning trial, accounting for
+`r print_num_word(sum(timeouts$n_timed_out), TRUE)` of `r sum(timeouts$n_trials)`
+learning trials in total.
+`r stringr::str_to_sentence(print_num_word(test_timeouts))` test
+trial`r if (test_timeouts == 1) "" else "s"` timed out.
+
+```{r}
+#| label: fig-feasibility-time
+#| fig-cap: "Time on task in the full sample. *Whole run* refers to the wall-clock duration JATOS recorded (available for finished runs only), the other boxes sum response times only, over the whole experiment and per stage. Each point is a participant, with orange points denoting participants excluded for failing the learning check. Boxes show the median and interquartile range."
 #| fig-width: 8
 #| fig-height: 4
 fig_time(times, stage_labels)
@@ -258,13 +296,15 @@ fig_time(times, stage_labels)
 
 ## Learning {#sec-learning}
 
+::: {.callout-note collapse="true" title="R code: Learning check"}
 ```{r}
-#| label: learning-tests
-learning_alpha  <- 0.10
+#| label: feasibility-learning-tests
+# Alpha of the test of the null hypothesis of guessing in each learning stage
+alpha_employed  <- 0.10
 
 tests_full <- test_learning(
   scores_full,
-  alpha = learning_alpha,
+  alpha = alpha_employed,
   silence = TRUE
 )
 
@@ -279,7 +319,7 @@ stopifnot(setequal(screen_full$id[screen_full$exclude], ids_learning))
 
 # Cut-offs on complete data, and the probability that a participant guessing
 # throughout passes all three stages
-k_stage <- compute_cutoffs(learning_alpha, n_stage)
+k_stage <- compute_cutoffs(alpha_employed, n_stage)
 p_guess <- prod(stats::pbinom(k_stage - 1, n_stage, 0.5, lower.tail = FALSE))
 
 stage_tests <- count_stage_passes(tests_full)
@@ -295,59 +335,9 @@ excluded <-
 n_failed_s3 <- sum(grepl("stage3", excluded$failed_stages))
 ```
 
-@fig-learning-group shows the learning curves of the primary set. To decide
-whether each participant learned, I tested,
-for every participant and stage, whether the number of correct responses
-exceeded what guessing would plausibly produce, with a one-sided exact binomial
-test against 0.5 at $\alpha$ = `r sprintf("%.2f", learning_alpha)` over all
-answered trials of the stage. On complete data, this requires at least
-`r k_stage[1]` of `r n_stage[1]` correct responses in Stage 1, `r k_stage[2]` of
-`r n_stage[2]` in Stage 2 and `r k_stage[3]` of `r n_stage[3]` in Stage 3. A
-participant who guesses throughout passes all three stages with probability
-`r sprintf("%.4f", p_guess)`.
-
 ```{r}
-#| label: fig-learning-group
-#| fig-cap: "Learning curves of the primary set: mean accuracy per block, with error bars of one between-participant standard error each way. In Stages 1 and 2, orange marks the blocking cues and blue the control cues; in Stage 3, pink marks the critical compounds (one previously blocked and one control cue, `legit` in the data) and green the filler compounds. The dashed line marks chance."
-#| fig-width: 8
-#| fig-height: 3.5
-# {catlasr} functions are deliberately garrulous to warn about all the pitfalls
-# coming with them; this is no the place for such a chat, so we suppress it
-suppressMessages(plot_learning(score_learning(fba_screened)))
-```
-
-```{r}
-#| label: tbl-stage-tests
-#| tbl-cap: "Participants of the full sample whose accuracy was significantly above chance, per learning stage."
-tbl_stage_tests(stage_tests, k_stage, n_stage, stage_labels)
-```
-
-Of the `r print_num_word(nrow(screen_full))` participants of the full sample,
-`r print_num_word(nrow(excluded))` failed at least one stage and
-`r if (nrow(excluded) == 1L) "was" else "were"` excluded
-(@tbl-learning-excluded). Stage 3, the stage with the fewest trials and the
-last one before the test, was failed by `r print_num_word(n_failed_s3)` of them.
-
-```{r}
-#| label: tbl-learning-excluded
-#| tbl-cap: "Participants excluded on learning, with every failed stage."
-tbl_learning_excluded(excluded)
-```
-
-::: {.callout-note collapse="true" title="Individual learning curves"}
-```{r}
-#| label: fig-learning-participants
-#| fig-cap: "Learning curves of every participant of the full sample, one row each; participants excluded on learning are drawn in greys, dark for blocking cues and critical compounds, light for control cues and fillers. Other colours as in @fig-learning-group."
-#| fig-width: 8
-#| fig-height: !expr 1.1 * length(ids_structural) + 0.8
-fig_learning_participants(scores_full, ids_learning)
-```
-:::
-
-### Sensitivity to $\alpha$
-
-```{r}
-#| label: alpha-sensitivity
+#| label: feasibility-alpha-sensitivity
+# Values of alpha for later sensitivity-to-threshold analysis
 alphas <- c(0.01, 0.025, 0.05, 0.10, 0.20)
 sensitivity <- screen_alphas(
   scores_full,
@@ -356,58 +346,605 @@ sensitivity <- screen_alphas(
   ids_labels
 )
 ```
+:::
 
-The choice of $\alpha$ sets how much evidence of learning a participant has to
-give. @tbl-alpha shows the cut-offs and the participants kept at five levels.
-At $\alpha$ = `r sprintf("%.2f", learning_alpha)`, the cut-offs correspond to
-`r sprintf("%.1f%%", 100 * k_stage[1] / n_stage[1])`,
-`r sprintf("%.1f%%", 100 * k_stage[2] / n_stage[2])` and
-`r sprintf("%.1f%%", 100 * k_stage[3] / n_stage[3])` correct in Stages 1 to 3,
-close to the 60% criterion of @lepelley2005.
+### Learning curves
+
+The figures below show the learning curves of the primary analysis set (after
+exclusion based on learning, top) and the full sample (including participants
+whose data did not differ sufficiently from guessing, bottom). To decide whether
+each participant learned, I tested, for every participant and stage, whether the
+number of correct responses exceeded what guessing would plausibly produce, with
+a one-sided exact binomial test against 0.5 at
+$\alpha$ = `r sprintf("%.2f", alpha_employed)` over all answered trials of the
+stage. On complete data, this requires at least `r k_stage[1]` of `r n_stage[1]`
+correct responses in Stage 1, `r k_stage[2]` of `r n_stage[2]` in Stage 2 and
+`r k_stage[3]` of `r n_stage[3]` in Stage 3. A participant who guesses
+throughout the whole experiment passes all three stages with probability
+`r sprintf("%.4f", p_guess)`.
+
+On average, both data sets' learning curves are indicative of learning across
+all three stages, suggesting that the *non-*excluded participants answered
+accurately enough to keep the learning curves sloping upwards substantially
+above change. However, a closer inspection of individual participants' data
+shows that several participants did not demonstrate learning, especially in
+Stage 3 (see the *Individual learning curves* block below).
 
 ```{r}
-#| label: tbl-alpha
-#| tbl-cap: "Cut-offs (correct of all trials, on complete data) and participants of the full sample kept by the learning-based exclusion rule at different levels of $\\alpha$."
-tbl_alpha(sensitivity, learning_alpha)
+#| label: fig-feasibility-learning-primary
+#| fig-cap: "Learning curves of the primary data set. The curves show mean accuracy per block, with error bars of one between-participant standard error each way. In Stages 1 and 2, orange marks the blocking cues and blue the control cues; in Stage 3, pink marks the critical compounds (of one previously blocked and one control cue) and green the filler compounds. The dashed line marks chance."
+#| fig-width: 8
+#| fig-height: 3.5
+fig_learning(fba_screened)
+```
+
+```{r}
+#| label: fig-feasibility-learning-complete
+#| fig-cap: "Learning curves of the full sample. The curves show mean accuracy per block, with error bars of one between-participant standard error each way. In Stages 1 and 2, orange marks the blocking cues and blue the control cues; in Stage 3, pink marks the critical compounds (of one previously blocked and one control cue) and green the filler compounds. The dashed line marks chance."
+#| fig-width: 8
+#| fig-height: 3.5
+fig_learning(fba_structural)
+```
+
+::: {.callout-tip collapse="true" title="Individual learning curves"}
+```{r}
+#| label: fig-feasibility-learning-participants
+#| fig-cap: "Learning curves of every participant of the full sample. Participants (rows) excluded based on the learning check are drawn in greys, with dark for blocking cues and critical compounds, light for control cues and fillers. Other colours as in the previous figures."
+#| fig-width: 8
+#| fig-height: !expr 1.1 * length(ids_structural) + 0.8
+fig_learning_participants(scores_full, ids_learning)
+```
+:::
+
+### Exclusions
+
+Of the `r print_num_word(nrow(screen_full), TRUE)` participants of the full
+sample, `r print_num_word(nrow(excluded))` failed the learning check in at least
+one stage and `r if (nrow(excluded) == 1L) "was" else "were"` thus excluded
+(see the top table below for stage-by-stage counts). Stage 3, the stage with the
+fewest trials and the last one before the test, was failed by
+`r if (nrow(excluded) == n_failed_s3) "all" else ""`
+`r print_num_word(n_failed_s3)` of them.
+
+```{r}
+#| label: tbl-feasibility-stage-tests
+#| tbl-cap: "Number of participants of the full sample whose accuracy was significantly above chance, per learning stage."
+tbl_stage_tests(stage_tests, k_stage, n_stage, stage_labels)
+```
+
+```{r}
+#| label: tbl-feasibility-learning-excluded
+#| tbl-cap: "Characteristics of participants excluded on learning, including every failed stage and its statistical test results."
+tbl_learning_excluded(excluded)
+```
+
+### Sensitivity to $\alpha$
+
+The choice of $\alpha$ decides how much evidence of learning a participant has
+to demonstrate for them to pass the learning check. The table below shows the
+cut-offs and the participant counts at five levels. At
+$\alpha$ = `r sub("0.", ".", sprintf("%.2f", alpha_employed), fixed = TRUE)`,
+the cut-offs correspond to `r sprintf("%.1f%%", 100 * k_stage[1] / n_stage[1])`,
+`r sprintf("%.1f%%", 100 * k_stage[2] / n_stage[2])` and
+`r sprintf("%.1f%%", 100 * k_stage[3] / n_stage[3])` correct in Stages 1 to 3,
+respectively, which is close to the 60% criterion of @lepelley2005.
+
+```{r}
+#| label: tbl-feasibility-alpha
+#| tbl-cap: "Cut-offs (correct responses out of all trials) and participant counts of the full sample included in the primary data set by the learning-based exclusion rule at different levels of $\\alpha$."
+tbl_alpha(sensitivity, alpha_employed)
+```
+
+## Analysis sets {#sec-analysis-sets}
+
+The *primary set* directly answers the research question, i.e., how much
+blocking people show on average in the three-stage modified allergist task,
+given that they learned the contingencies of the learning stages.
+
+The *full sample* serves as a sensitivity-to-learning analysis, indicating how
+much the learning-based exclusion changes the estimates.
+
+Finally, the set *without prior knowledge* removes participants claiming to know
+the design, such as yours truly, to eliminate possible conformity with expected
+results.
+
+```{r}
+#| label: tbl-feasibility-analysis-sets
+#| tbl-cap: "Analysis sets of the pilot. Set 3 filters the primary set by participant metadata; it is not an official `{catlasr}` exclusion and it is thus not recorded in a data bundle's provenance."
+tbl_analysis_sets(meta_screened, ids_structural)
 ```
 
 ## Exclusion rules for `fba-allergy-online-02`
 
-The rules below were applied to the pilot in the order listed, and their wording
-is taken verbatim from the provenance record of the data, so that what is
-pre-registered for `fba-allergy-online-02` is exactly what was applied here. A
-participant is counted under the first rule that removes them.
+The rules below were applied to the pilot in the order listed, with their
+wording taken verbatim from the provenance record of the data, so that exclusion
+criteria remain consistent across their software fingerprint (`{catlasr}` data
+bundle's provenance record), this notebook and `fba-allergy-online-02`'s
+pre-registration. Any excluded participant is counted under the first rule that
+removes them.
 
+::: {.callout-warning title="Exclusion criteria"}
 ```{r}
-#| label: rules
+#| label: feasibility-rules
 #| results: asis
 cat(write_rules(prov$exclusions, rule_labels), sep = "\n")
 ```
+:::
 
-The last rule is decided from learning-stage data only; no test-stage response
-enters it, so it is blind to the primary endpoint. None of the three published
-studies closest to this design tested Stage 3 against chance: @beesley2011 and
-@lepelley2007 used no learning criterion, and @griffiths2009 excluded only
-participants at or below 50% correct over the final five blocks of any stage.
+::: {.callout-tip title="Exclusions based on the learning check"}
+None of the three published studies closest to this design statistically tested
+learning against chance. @beesley2011 and @lepelley2007 did not report any
+learning exclusion criterion, while @griffiths2009 excluded only participants at
+or below 50% correct over the final five blocks of any stage. I thus retain the
+full sample for sensitivity analysis.
 
-## Analysis sets {#sec-analysis-sets}
+Importantly, the learning-check rule is decided from learning-stage data only,
+without any test-stage response entering it. Consequntly, despite being
+data-dependent, it is blind to the primary endpoint.
+:::
+
+# Blocking {#sec-blocking}
+
+Forward blocking was defined and operationalised according to the rules
+described in the [Dependent Variables](01-estimands-estimates.qmd) notebook.
+In this study I consider two blocking indices (BIs), both of which are described
+in more detail later:
+
+1. the **original** confidence-weighted BI~2~, and
+2. the **alternative** choice-only BI~3~.
+
+Both indices are on a scale in which positive values indicate blocking, i.e.,
+answers that lean towards the Stage 3 outcome of the control cue rather than
+that of the blocked cue. Each index is computed per participant, averaged in
+each of the three analysis sets with between-participant standard errors, and
+tested one-sided against the null hypothesis of no blocking, because the
+direction of the effect is predicted by prior research.
+
+The primary set serves to inform the main analysis of the ensuing
+`fba-allergy-online-02` large-scale replication study, while the full sample
+(without the learning-based exclusions) and the the set without prior knowledge
+are there to investigate how the sample affects results under pre-specified
+"forking paths." The stability of both indices across the test stage is later
+modelled from their trial-level source data
+([Stability across test blocks](#sec-stability)).
+
+::: {.callout-note collapse="true" title="R code: Blocking calculations"}
+```{r}
+#| label: feasibility-blocking-indices
+# Test-stage scores of the full sample. Every analysis set can be derived as a
+# subset of its participants
+blocking_scores <- score_blocking(
+  fba_structural,
+  silence = TRUE
+)
+
+# Per-participant indices on the first test block
+indices_first <- index_blocking(
+  blocking_scores,
+  blocks = 1L,
+  silence = TRUE
+)
+
+# Per-participant indices over all test blocks
+indices_pooled <- index_blocking(
+  blocking_scores,
+  blocks = NULL,
+  silence = TRUE
+)
+
+# Per-participant per block indices
+indices_blocks <- index_blocking(
+  blocking_scores,
+  blocks = NULL,
+  by_block = TRUE,
+  silence = TRUE
+)
+
+# A list with participants assigned to their respective analysis sets to guide
+# participant filtering for different sets analyses
+sets <- list_analysis_sets(meta_screened, ids_structural)
+
+# The primary set's indices must fully coincide with the screened bundle
+stopifnot(identical(
+  filter(indices_first, id %in% sets[[1]]),
+  index_blocking(score_blocking(fba_screened, silence = TRUE), silence = TRUE)
+))
+
+# The two aggregate analyses, tested one-sided in the direction of blocking:
+# the original index (BI2 on the first test block) and the alternative index
+# (BI3 over all test blocks)
+estimates <-
+  estimate_sets(
+    bind_rows(indices_first, indices_pooled),
+    sets,
+    alternative = "greater"
+  ) |>
+  filter(
+    (index == "bi_confidence" & blocks == "1") |
+      (index == "bi_choice" & blocks != "1")
+  )
+
+# The estimates quoted in the text: primary set first, full sample second
+bi2_prim <- filter(estimates, set == names(sets)[1], index == "bi_confidence")
+bi2_full <- filter(estimates, set == names(sets)[2], index == "bi_confidence")
+bi2_knew <- filter(estimates, set == names(sets)[3], index == "bi_confidence")
+bi3_prim <- filter(estimates, set == names(sets)[1], index == "bi_choice")
+bi3_full <- filter(estimates, set == names(sets)[2], index == "bi_choice")
+bi3_knew <- filter(estimates, set == names(sets)[3], index == "bi_choice")
+
+# The exclusion process ensures each included participant has data from at
+# least one test block, however, it does not guarantee no time-outed trials
+n_incomplete_first <- sum(!indices_first$complete)
+timeout_text <- if (n_incomplete_first == 0L) {
+  paste(
+    "No trial of the first test block timed out and every participant-level",
+    "BI~2~ is thus calculated using all eight trials of the block."
+  )
+} else {
+  sprintf(
+    paste(
+      "%s participant%s of the full sample let at least one trial of the first",
+      "test block time out and their BI~2~ averages over the answered trials."
+    ),
+    stringr::str_to_sentence(print_num_word(n_incomplete_first)),
+    if (n_incomplete_first == 1L) "" else "s"
+  )
+}
+
+# In text values of effect size estimates
+es_range <-
+  estimates |>
+  filter(set %in% names(sets)[1L:2L]) |>
+  pull(d) |>
+  range() |>
+  round(2) |>
+  paste(collapse = "&ndash;")
+```
+:::
+
+## Original index
+
+The original index is BI~2~ on the first test block, computed as in
+@beesley2011. On each test trial, the confidence rating counts as positive when
+the participant chose the outcome of the control cue and as negative when they
+chose the outcome of the blocked cue, and these signed ratings are averaged over
+all trials of the block. `r timeout_text`
+
+The results are summarised in the table below. In all three analysis sets, the
+data provided only weak evidence against the directional null hypothesis of no
+blocking:
+
+- **primary set:** `r print_test(bi2_prim)`,
+- **full sample:** `r print_test(bi2_full)`,
+- **knowledge-based exclusion:** `r print_test(bi2_knew)`.
+
+By comparison, @beesley2011 reported a mean of 2.03 (*N* = 26, *t*(25) = 2.74),
+i.e., *d*~z~ of about 0.55, which is noticeably larger than the present
+estimates. However, their estimate lies within the 90% confidence intervals of
+all three analysis sets.
 
 ```{r}
-#| label: tbl-analysis-sets
-#| tbl-cap: "Analysis sets of the pilot. Sets 3 and 4 filter the primary set by participant metadata; they are not exclusions and are not recorded in provenance."
-meta_screened <- extract_meta(fba_screened)
-tbl_analysis_sets(meta_screened, ids_structural, ids_labels)
+#| label: tbl-feasibility-blocking-original
+#| tbl-cap: "Original index (BI~2~ on the first test block) statistics. Reported per analysis set, with a one-sided *t*-test against zero (no blocking) and a two-sided 90% CI of the mean and effect size *d*~z~."
+tbl_blocking(estimates, "bi_confidence", "1")
 ```
 
-The primary set answers the research question; the full sample shows how much
-the learning-based exclusion changes the estimates; the set without prior
-knowledge removes, among others, my own run; and the LABELS set describes the
-pool from which `fba-allergy-online-02` recruits.
+## Alternative index
 
-## Implications for `fba-allergy-online-02`
+The alternative BI~3~ index is taken directly from the simulation study of
+@paskewitz2020. It is calculated from choices only, without using the confidence
+rating data. Over all test blocks, BI~3~ sums, across the eight test pairs, the
+proportion of answers consistent with blocking minus one half.[^1] In the
+eight-trial test block design as used here, BI~3~ ranges from &minus;4 to 4 with
+higher values indicating more blocking. The results, summarised in the table
+below, were as follows:
+
+- **primary set:** `r print_test(bi3_prim)`,
+- **full sample:** `r print_test(bi3_full)`,
+- **knowledge-based exclusion:** `r print_test(bi3_knew)`.
+
+[^1]: This is equivalent to the specification of @paskewitz2020, which scores
+each response by the outcome it names rather than by its consistency with
+blocking.
 
 ```{r}
-#| label: yield
+#| label: tbl-feasibility-blocking-alternative
+#| tbl-cap: "Alternative index (BI~3~ over all test blocks). Reported per analysis set, with a one-sided *t*-test against zero (no blocking) and a two-sided 90% CI of the mean and effect size *d*~z~."
+tbl_blocking(estimates, "bi_choice", unique(bi3_prim$blocks))
+```
+
+## Estimates for the power analysis
+
+The table below lists the effect size estimates of all analysis sets and their
+95% confidence intervals, for use in a prospective power analysis of
+`fba-allergy-online-02`.
+
+```{r}
+#| label: tbl-feasibility-power
+#| tbl-cap: "Pilot estimates of the effect size for the power analysis."
+tbl_power(estimates)
+```
+
+::: {.callout-warning title="Take-aways for the pre-registration"}
+The main estimates (primary and full sample) yielded effect sizes *d*~z~ ranging
+`r es_range`. These are noticeably smaller than *d*~z~ &approx; 0.55 observed by
+@beesley2011. However, they fall within the small-to-medium range usually
+considered realistic for psychological research.
+
+With as few participants as the feasibility study has, no firm conclusions can
+be made about the size of the forward-blocking effect in the three-stage
+modified allergist task. Indeed, arriving at a precise estimate is one of the
+aims of the  large-scale `fba-allergy-online-02` that is to follow.
+:::
+
+::: {.callout-important title="Effect size sensitivity to prior knowledge"}
+In the feasibility study, the effect size point estimate was cut to about half
+or less after participants claiming prior knowledge of the design, counting
+yours truly, were excluded. Importantly, it remains positive. This estimate will
+serve as a "worst-case scenario" value during power analysis, computed to guide
+additional data collection if `fba-allergy-online-02` fails to detect blocking
+following a power analysis based on the primary and full sample estimates.
+:::
+
+## Stability across test blocks {#sec-stability}
+
+Unlike in learning stages, there is no feedback during the test stage. Moreover,
+the three-stage forward blocking design contains ambiguous test stage stimuli,
+which do not have any correct answer. It follows that unless factors such as
+boredom, fatigue or disengagement cause the responses to drift across blocks,
+test stage blocks should measure the same construct at each time-point of the
+stage. Under this hypothesis, the first block reflects the same underlying
+phenomenon as the later ones, and using data from repeated measures across
+blocks not only provides a valid measure of blocking but also increase its
+precision. These two inferences are important for validity of the original and
+alternative blocking indeces as used here, respectively.
+
+Stability of BI~2~ and BI~3~ in in the three analysis sets is evaluated by:
+
+- visual inspection and correlation between estimated participant-level indices,
+- mixed-effect modelling of the source, trial-level data, with by-test-pair and
+  by-participant random intercepts.
+
+### Aggregated measures
+
+#### Average per block blocking
+
+The three figures below show how the BI~2~ and BI ~3~ indices change across
+blocks as measured in participants of the primary set, full sample, and primary
+with participants claiming knowledge of the design excluded, respectively. All
+show weak evidence of a relatively small blocking effect, with little if any
+attenuation across the six blocks
+
+```{r}
+#| label: fig-feasibility-blocking-blocks-primary
+#| fig-cap: "BI~2~ and BI~3~ of the **primary set** per test block and over all test blocks. Violins and grey points show the participants' indices, black points and bars show the mean and one between-participant standard error each way. The dotted line marks no blocking."
+#| fig-width: 10
+#| fig-height: 8
+fig_blocking_blocks(indices_blocks, indices_pooled, sets[[1L]])
+```
+
+```{r}
+#| label: fig-feasibility-blocking-blocks-full
+#| fig-cap: "BI~2~ and BI~3~ of the **full sample** per test block and over all test blocks. Violins and grey points show the participants' indices, black points and bars show the mean and one between-participant standard error each way. The dotted line marks no blocking."
+#| fig-width: 8
+#| fig-height: 6
+fig_blocking_blocks(indices_blocks, indices_pooled, sets[[2L]])
+```
+
+```{r}
+#| label: fig-feasibility-blocking-blocks-knew
+#| fig-cap: "BI~2~ and BI~3~ of the primary set **without participants reporting prior knowledge**, per test block and over all test blocks. Violins and grey points show the participants' indices, black points and bars show the mean and one between-participant standard error each way. The dotted line marks no blocking."
+#| fig-width: 8
+#| fig-height: 6
+fig_blocking_blocks(indices_blocks, indices_pooled, sets[[3L]])
+```
+
+#### Correlation across blocks
+
+The two figures below show block-by-block correlation matrix of BI~2~ (top) and
+BI~3~ (bottom) measured in each of the three analysis sets. Firstly, observe
+that the correlation estimate is always positive in this sample, with no
+anti-correlation, indicating that participants are likely not jumping between
+response options but instead tend to select similar responses across blocks on
+average.
+
+Furthermore, the correlation coefficients are smaller when estimated in
+the full sample compared to the other two analysis sets. This is especially
+evident for BI~3~ (see the bottom figure). If replicated in
+`fba-allergy-online-02`, this pattern would imply that the learning check is a
+valid way to ensure high reliability of a person-specific BI and support its
+use as a between-participant trait-like variable in correlational analyses of
+blocking with other participant characteristics.
+
+```{r}
+#| label: fig-feasibility-blocking-correlations-original
+#| fig-cap: "Pearson correlations of the participants' BI~2~ between test blocks, in each of the three analysis sets. Note that give the small sample size, each correlation estimate is imprecise."
+#| fig-width: 10
+#| fig-height: 6
+fig_block_correlations(correlate_blocks(indices_blocks, sets, "bi_confidence"))
+```
+
+```{r}
+#| label: fig-feasibility-blocking-correlations-alternative
+#| fig-cap: "Pearson correlations of the participants' BI~3~ between test blocks, in each of the three analysis sets. Note that give the small sample size, each correlation estimate is imprecise."
+#| fig-width: 10
+#| fig-height: 6
+fig_block_correlations(correlate_blocks(indices_blocks, sets, "bi_choice"))
+```
+
+### Mixed-effect modelling
+
+Three nested generalised mixed-effect models (GLMMs) were fitted per index and
+analysis set, each with by-participant and by-test-pair (cues in the canonical
+order) crossed random intercepts and:
+
+1. **no change** across test blocks,
+2. **common linear drift** at the population level, and
+3. additional **by-participant drift**.
+
+The models describe the trial-level data sources of both indices, i.e., single
+signed confidence scores[^2] for BI~2~ and blocking-consistent single trial
+decisions for BI~3~. For BI~2~, the signed confidence of every answered test
+trial is modelled as Gaussian, which is an approximation, since signed
+confidence is bimodal and never exactly zero. For BI~3~, the blocking-consistent
+choice of every answered test trial is modelled as binomial with a logit link.
+
+[^2]: The signed confidence score is defined for each trial of each participant
+as $\text{Confidence} \times (I_{o_c} - I_{o_b})$ where $I_{\{.\}}$ is the
+indicator function of the selected option, $o_c$ is the Stage 3 outcome paired
+with the control cue, and $o_b$ is the Stage 3 outcome paired with the blocked
+cue.
+
+Each data source was fitted in three ways, with models of increasing complexity
+as listed above, with `{lme4}`. All models treat participants and the eight test
+pairs as crossed random intercepts. Participant-specific drift
+models whose fit was singular were then refitted without the correlation between
+the by-participant intercepts and slopes (drifts) and, if still singular, were
+left out of the analysis altogether.
+
+::: {.callout-note collapse="true" title="R code: Mixed models"}
+```{r}
+#| label: feasibility-stability-models
+# Three nested mixed models per index and set, with participants and test pairs
+# (the "items") as crossed random intercepts: no change across test blocks, a
+# common linear drift, and participant-specific drift. Block is coded such that
+# the first test block is coded as zero and thus reflected in the intercept of
+# drift models (`block - 1`)
+stability_models <- model_stability(
+  scores = blocking_scores,
+  sets
+)
+
+# Common drift estimates:
+drift <-
+  stability_models$estimates |>
+  filter(
+    component == "fixed",
+    model == "drift",
+    term == "block0"
+  )
+
+drift_bi2 <- filter(
+  drift,
+  set == names(sets)[1],
+  index == "bi_confidence"
+)
+
+drift_bi3 <- filter(
+  drift,
+  set == names(sets)[1],
+  index == "bi_choice"
+)
+
+# Model-based BI estimates under the assumption of no drift:
+level <-
+  stability_models$estimates |>
+  filter(
+    component == "fixed",
+    model == "intercept",
+    term == "(Intercept)"
+  )
+
+model_bi2_prim <- filter(level, set == names(sets)[1L], index == "bi_confidence")
+model_bi3_prim <- filter(level, set == names(sets)[1L], index == "bi_choice")
+model_bi2_full <- filter(level, set == names(sets)[2L], index == "bi_confidence")
+model_bi3_full <- filter(level, set == names(sets)[2L], index == "bi_choice")
+model_bi2_knew <- filter(level, set == names(sets)[3L], index == "bi_confidence")
+model_bi3_knew <- filter(level, set == names(sets)[3L], index == "bi_choice")
+```
+:::
+
+#### Model comparisons
+
+The table below shows nested model comparisons in all three analysis sets, using
+each BI source data as the outcome. Overall, the data did not contain enough
+evidence for rejection of the simplest, no drift, model in favour of models
+including common drift of blocking-consistent responding across blocks of the
+Test stage. The case for retaining the simpler model, and thus assume the
+indices' validity in terms of stability across testing blocks, was marginally
+stronger for BI~3~ than BI~2~ (see for instance AIC weights, which penalise
+complexity less than BIC does).
+
+```{r}
+#| label: tbl-feasibility-stability-comparison
+#| tbl-cap: "Comparison of performance of stability models per set and index. Likelihood-ratio tests compare each model against the previous one if applicable. Models left out because their fit was singular are assigned empty rows."
+tbl_stability_comparison(stability_models$comparison)
+```
+
+#### Model estimates
+
+All model estimates are presented in the table below and their implications for
+expected response data are visualised in the following figure. Here, I report
+numbers only for the primary set results, and refer the reader to the table for
+the other two analysis sets.
+
+In the primary set, the common drift per block was
+`r sprintf("%.2f (95%% CI [%.2f, %.2f])", drift_bi2$estimate, drift_bi2$ci_low, drift_bi2$ci_high)`
+points of signed confidence for BI~2~ and
+`r sprintf("%.2f [%.2f, %.2f]", drift_bi3$estimate, drift_bi3$ci_low, drift_bi3$ci_high)`
+on the logit scale for BI~3~, indicating similarly slow drift towards zero for
+both types of responses. On the other hand, in the full sample and primary
+sample without participants knowing the design, only the signed confidence
+variable showed weak tendency to decline across blocks, while the choice 
+variable's common drift rate was estimated at level practically equivalent to
+zero. It should be borne in mind, however, that all of these estimates are
+highly imprecise due to the low sample size, and follow from a model that does
+not significantly improve fit to the data compared to a model with no common
+drift parameter.
+
+::: {.callout-warning title="Pointers to `fba-allergy-online-02` exploration"}
+While there is not enough data in the feasibility study to make firm
+conclusions, the trends suggested by the analysis can be instructive for the
+ensuing large-scale study. The current data, though inconclusive, give some
+credence to the idea that BI~3~, i.e., choice-based data, tend to be stable
+across blocks, while BI~2~, i.e., confidence-weighted data, may slowly drift
+towards zero.
+
+Following this logic, I will pre-register an additional exploratory analysis of
+choice and confidence data separately, predicting that the **choice data will
+not drift significantly across blocks**, whereas the **confidence data will
+monotonically decrease across blocks**. For closer specification and the
+predictions' relation to the main study, see the
+[Experiment 1: Power Analysis](03-replication-online-power.qmd) notebook.
+:::
+
+```{r}
+#| label: tbl-feasibility-stability-estimates
+#| tbl-cap: "Stability models per set and index, with Wald 90% CIs. The intercept refers to the whole test stage in the model without change and to the first test block in the drift models; on the index scale, for BI~3~, it is the probability of a blocking-consistent choice averaged over participants and test pairs, turned into the BI~3~ scale. Change per block is on the scale of the model (signed confidence for BI~2~, logit for BI~3~)."
+tbl_stability_estimates(stability_models$estimates)
+```
+
+```{r}
+#| label: fig-feasibility-stability
+#| fig-cap: "Change of the blocking indices across the test blocks. Points and bars represent the mean of the participants' per-block index with one between-participant standard error each way, respectively. Line and band show the common drift of the model with its Wald 90% confidence band, on the scale of the index. The dotted red line marks no blocking."
+#| fig-width: 8
+#| fig-height: 10
+fig_stability(indices_blocks, stability_models)
+```
+
+#### Model-based blocking indeces
+
+Finally, the *No drift* models provide potentially more precise, model-based
+estimates of the blocking indices. These estimates are compared to mean-based
+classical values in the following table. Overall, they tend to be more
+conservative for BI~2~ and near identical for BI~3~, however, with larger
+confidence bands.
+
+| Set | Index | Mean-based | Model-based |
+|:------|:--:|:---:|:---:|
+| `r names(sets)[1L]` | BI~2~ | `r sprintf("%.2f [%.2f, %.2f]", bi2_prim$estimate, bi2_prim$ci_low, bi2_prim$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi2_prim$index_scale, model_bi2_prim$index_low, model_bi2_prim$index_high)` |
+| `r names(sets)[1L]` | BI~3~ | `r sprintf("%.2f [%.2f, %.2f]", bi3_prim$estimate, bi3_prim$ci_low, bi3_prim$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi3_prim$index_scale, model_bi3_prim$index_low, model_bi3_prim$index_high)` |
+| `r names(sets)[2L]` | BI~2~ | `r sprintf("%.2f [%.2f, %.2f]", bi2_full$estimate, bi2_full$ci_low, bi2_full$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi2_full$index_scale, model_bi2_full$index_low, model_bi2_full$index_high)` |
+| `r names(sets)[2L]` | BI~3~ | `r sprintf("%.2f [%.2f, %.2f]", bi3_full$estimate, bi3_full$ci_low, bi3_full$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi3_full$index_scale, model_bi3_full$index_low, model_bi3_full$index_high)` |
+| `r names(sets)[3L]` | BI~2~ | `r sprintf("%.2f [%.2f, %.2f]", bi2_knew$estimate, bi2_knew$ci_low, bi2_knew$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi2_knew$index_scale, model_bi2_knew$index_low, model_bi2_knew$index_high)` |
+| `r names(sets)[3L]` | BI~3~ | `r sprintf("%.2f [%.2f, %.2f]", bi3_knew$estimate, bi3_knew$ci_low, bi3_knew$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi3_knew$index_scale, model_bi3_knew$index_low, model_bi3_knew$index_high)` |
+
+
+# Conclusions
+
+::: {.callout-note collapse="true" title="R code: Conclusions"}
+```{r}
+#| label: feasibility-conclusions
 n_kept <- length(ids_screened)
 n_complete <- length(ids_structural)
 n_rec_labels <- length(ids_labels)
@@ -415,18 +952,44 @@ n_kept_labels <- sum(ids_screened %in% ids_labels)
 starts_per_kept <- n_records / n_kept
 starts_per_kept_low <- 1 / stats::binom.test(n_kept, n_records)$conf.int[1]
 ```
+:::
 
-Of all JATOS records, `r print_n_pct(n_kept, n_records)` entered the primary
-analysis (`r print_ci_pct(n_kept, n_records)`); of the complete runs,
-`r print_n_pct(n_kept, n_complete)` (`r print_ci_pct(n_kept, n_complete)`). In
-the LABELS batch alone, `r print_n_pct(n_kept_labels, n_rec_labels)` of records
-were analysed. Because `fba-allergy-online-02` is powered for participants
-whose data survive the exclusion rules, every analysed participant takes about
+* Of all JATOS records, `r print_n_pct(n_kept, n_records)` entered the primary
+  analysis (`r print_ci_pct(n_kept, n_records)`); of the complete runs, it was
+  `r print_n_pct(n_kept, n_complete)` (`r print_ci_pct(n_kept, n_complete)`).
+  In the LABELS batch alone, `r print_n_pct(n_kept_labels, n_rec_labels)`
+  records were analysed.
+* The blocking indices analysis point to a small-to-moderate effect, which
+  roughly halved when participants claiming to already know the design were
+  excluded, although these estimates must be interpreted cautiously given the
+  small sample size.
+* Finally, the stability analysis provides some, albeit inconclusive evidence,
+  that six-block mean-based blocking indexes may be valid in terms of a lack
+  of substantial drift in participant response tendencies. This conclusion seems
+  stronger for choice-based metrics such as BI~3~, although the precise dynamics
+  of the response tendency as the Test stage advances need to be analysed within
+  a larger data set.
+
+::: {.callout-warning title="Implications for `fba-allergy-online-02`"}
+Because `fba-allergy-online-02` is powered for participants whose data survive
+the exclusion rules, every analysed participant takes about
 `r sprintf("%.1f", starts_per_kept)` started runs, and up to
 `r sprintf("%.1f", starts_per_kept_low)` at the lower end of the confidence
-interval. The pilot sample was small and drawn partly from my family
-and acquaintances, so these figures are a rough guide for the sampling plan
-rather than a forecast.
+interval estimated above. Based on the feasibility study, the power analysis
+thus assumes approximately **50% drop-out**.
+
+Furthermore, the blocking computations indicate that the power analysis should
+assume a **small-to-moderate effect size in the *d*~z~ = `r es_range` range**
+(compared to *d*~z~ &approx; 0.55 observed by @beesley2011), with a worst-case
+scenario reaching approximately half of this range.
+
+Finally, **stability of the indices** must be tested on the
+`fba-allergy-online-02` data set, with the feasibility study suggesting an
+exploratory analysis of differential time dynamics between confidence- and
+choice-based response data.
+:::
+
+# Software
 
 ::: {.callout-note collapse="true" title="Functions used in this notebook"}
 The tables, figures and formatting helpers of this notebook are functions,
