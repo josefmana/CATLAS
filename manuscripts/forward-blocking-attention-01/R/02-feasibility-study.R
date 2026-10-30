@@ -26,7 +26,7 @@
 #'
 #' @param meta Metadata of the bundle as imported, with `id` as text and a
 #'   factor variable `channel`.
-#' @param exclusions The `exclusions` field of the screened bundle's provenance.
+#' @param exclusions The `exclusions` field of the last bundle's provenance.
 #' @param rule_labels Named character. A short label per rule name; rules
 #'   without one keep their original name.
 #'
@@ -575,25 +575,24 @@ tbl_alpha <- function(sensitivity, applied) {
 #'
 #' @param meta_screened Metadata of the primary set.
 #' @param ids_structural Character. Identifiers of the full sample.
+#' @param ids_naive Character. Identifiers of the naive set.
 #'
 #' @returns A `gt` table.
-tbl_analysis_sets <- function(meta_screened, ids_structural) {
+tbl_analysis_sets <- function(meta_screened, ids_structural, ids_naive) {
   tibble::tibble(
-    set    = c("1 \u00b7 Primary", "2 \u00b7 Full sample", "3 \u00b7 Primary, no prior knowledge"),
-    data   = c("After all exclusions", "Before the learning-based exclusion", "After all exclusions"),
-    filter = c("None", "None", "Prior knowledge not reported"),
-    n      = c(
+    set  = c("1 \u00b7 Primary", "2 \u00b7 Full sample", "3 \u00b7 Naive"),
+    data = c("After the learning-based exclusion", "Before the learning-based exclusion", "After the prior-knowledge exclusion"),
+    n    = c(
       nrow(meta_screened),
       length(ids_structural),
-      sum(!(meta_screened$prior_knowledge %in% TRUE))
+      length(ids_naive)
     )
   ) |>
     gt::gt() |>
     gt::cols_label(
-      set    = "Set",
-      data   = "Data",
-      filter = "Filter",
-      n      = "N"
+      set  = "Set",
+      data = "Data",
+      n    = "N"
     )
 }
 
@@ -604,13 +603,20 @@ tbl_analysis_sets <- function(meta_screened, ids_structural) {
 #'
 #' @returns A named list of character vectors, one per analysis set, in the
 #'   order of [tbl_analysis_sets()].
-list_analysis_sets <- function(meta_screened, ids_structural) {
+list_analysis_sets <- function(meta_screened, ids_structural, ids_naive) {
   ids_screened <- as.character(meta_screened$id)
+
+  # The naive bundle must be the primary set without the participants who
+  # reported prior knowledge, as the import vignette builds it
+  stopifnot(setequal(
+    ids_naive,
+    ids_screened[!(meta_screened$prior_knowledge %in% TRUE)]
+  ))
 
   list(
     "1 \u00b7 Primary" = ids_screened,
     "2 \u00b7 Full sample" = ids_structural,
-    "3 \u00b7 Primary, no prior knowledge" = ids_screened[!(meta_screened$prior_knowledge %in% TRUE)]
+    "3 \u00b7 Naive" = ids_naive
   )
 }
 

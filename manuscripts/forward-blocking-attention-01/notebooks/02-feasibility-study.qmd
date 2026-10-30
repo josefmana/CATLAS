@@ -69,15 +69,18 @@ following text.
 ::: {.callout-note collapse="true" title="R code: Data import"}
 ```{r}
 #| label: feasibility-data
-# The three data bundles are written to the private folder
+# The four data bundles are written to the private folder
 # (`CATLAS_PRIVATE_DIR`) by the {catlasr} import vignette, rendered with
 # `params = list(save = TRUE)`. If any of them is missing, the
 # `read_private_rds()` will stop and name the files the folder contains.
 fba_imported   <- read_private_rds("fba-allergy-online-01-imported.rds")    # Before any exclusion
 fba_structural <- read_private_rds("fba-allergy-online-01-structural.rds")  # Full sample
 fba_screened   <- read_private_rds("fba-allergy-online-01-screened.rds")    # Primary analysis
+fba_naive      <- read_private_rds("fba-allergy-online-01-naive.rds")       # Naive set
 
-prov <- provenance(fba_screened)
+# The naive bundle's provenance records all five exclusion rules, the last of
+# which defines the naive set
+prov <- provenance(fba_naive)
 
 # Recruitment channel of each JATOS batch
 channels <- tibble::tribble(
@@ -98,6 +101,7 @@ meta_screened <- extract_meta(fba_screened)
 
 ids_structural <- as.character(extract_meta(fba_structural)$id)
 ids_screened <- as.character(extract_meta(fba_screened)$id)
+ids_naive <- as.character(extract_meta(fba_naive)$id)
 ids_labels <- meta_imported$id[meta_imported$batch_id == channels$batch_id[channels$channel == "LABELS"]]
 
 stage_labels <- c(
@@ -136,8 +140,8 @@ its hypotheses. I answered `"yes"` to the debriefing question on prior knowledge
 of similar experiments, as did `r print_num_word(n_prior_others, TRUE)` other
 participant`r if (n_prior_others == 1L) "" else "s"` of the full sample.
 Participants with prior knowledge stay in the primary analysis of the
-feasibility study and are left out of one of the sensitivity analyses (see
-[Analysis sets](#sec-analysis-sets)).
+feasibility study and are left out of the naive set, one of the sensitivity
+analyses (see [Analysis sets](#sec-analysis-sets)).
 :::
 
 ::: {.callout-note collapse="true" title="R code: Attrition funnel"}
@@ -147,17 +151,19 @@ rule_labels <- c(
   no_jspsych_data = "No jsPsych data",
   declined_consent = "Declined consent",
   incomplete_run = "Incomplete run",
-  learning_not_reliably_above_chance = "Insufficient learning"
+  learning_not_reliably_above_chance = "Insufficient learning",
+  prior_knowledge_reported = "Prior knowledge"
 )
 
 # Replays the exclusions recorded in provenance, in order, per channel
 funnel <- count_funnel(meta_imported, prov$exclusions, rule_labels)
 
-# The funnel must report the same number of participants as screened and
-# structural bundles do
+# The funnel must report the same number of participants as the naive,
+# screened and structural bundles do
 stopifnot(
-  identical(tail(funnel$Total, 1), length(ids_screened)),
-  identical(funnel$Total[nrow(funnel) - 1L], length(ids_structural))
+  identical(funnel$Total[nrow(funnel)], length(ids_naive)),
+  identical(funnel$Total[nrow(funnel) - 1L], length(ids_screened)),
+  identical(funnel$Total[nrow(funnel) - 2L], length(ids_structural))
 )
 
 ids_incomplete <- ids_excluded_by(prov$exclusions, "incomplete_run")
@@ -220,7 +226,7 @@ test_timeouts <- sum(
 
 ```{r}
 #| label: tbl-feasibility-funnel
-#| tbl-cap: "Participants remaining after application of each exclusion rule, stratified by recruitment channel. Rules are applied in the order listed and a participant is counted under the first rule that removes them."
+#| tbl-cap: "Participants remaining after application of each exclusion rule, stratified by recruitment channel. Rules are applied in the order listed and a participant is counted under the first rule that removes them. The primary set is what remains before the last rule, which defines the naive set."
 tbl_funnel(funnel, levels(channels$channel))
 ```
 
@@ -444,14 +450,15 @@ given that they learned the contingencies of the learning stages.
 The *full sample* serves as a sensitivity-to-learning analysis, indicating how
 much the learning-based exclusion changes the estimates.
 
-Finally, the set *without prior knowledge* removes participants claiming to know
-the design, such as yours truly, to eliminate possible conformity with expected
-results.
+Finally, the *naive set* removes from the primary set the participants who
+reported prior knowledge of a similar experiment, such as yours truly, to
+eliminate possible conformity with expected results. In
+`fba-allergy-online-02`, the naive set becomes the primary set.
 
 ```{r}
 #| label: tbl-feasibility-analysis-sets
-#| tbl-cap: "Analysis sets of the pilot. Set 3 filters the primary set by participant metadata; it is not an official `{catlasr}` exclusion and it is thus not recorded in a data bundle's provenance."
-tbl_analysis_sets(meta_screened, ids_structural)
+#| tbl-cap: "Analysis sets of the pilot. Each is a data bundle saved by the `{catlasr}` import vignette after the exclusions given under *Data*, and recorded in its provenance."
+tbl_analysis_sets(meta_screened, ids_structural, ids_naive)
 ```
 
 ## Exclusion rules for `fba-allergy-online-02`
@@ -502,7 +509,7 @@ direction of the effect is predicted by prior research.
 
 The primary set serves to inform the main analysis of the ensuing
 `fba-allergy-online-02` large-scale replication study, while the full sample
-(without the learning-based exclusions) and the the set without prior knowledge
+(without the learning-based exclusions) and the naive set
 are there to investigate how the sample affects results under pre-specified
 "forking paths." The stability of both indices across the test stage is later
 modelled from their trial-level source data
@@ -542,7 +549,7 @@ indices_blocks <- index_blocking(
 
 # A list with participants assigned to their respective analysis sets to guide
 # participant filtering for different sets analyses
-sets <- list_analysis_sets(meta_screened, ids_structural)
+sets <- list_analysis_sets(meta_screened, ids_structural, ids_naive)
 
 # The primary set's indices must fully coincide with the screened bundle
 stopifnot(identical(
@@ -567,10 +574,10 @@ estimates <-
 # The estimates quoted in the text: primary set first, full sample second
 bi2_prim <- filter(estimates, set == names(sets)[1], index == "bi_confidence")
 bi2_full <- filter(estimates, set == names(sets)[2], index == "bi_confidence")
-bi2_knew <- filter(estimates, set == names(sets)[3], index == "bi_confidence")
+bi2_naive <- filter(estimates, set == names(sets)[3], index == "bi_confidence")
 bi3_prim <- filter(estimates, set == names(sets)[1], index == "bi_choice")
 bi3_full <- filter(estimates, set == names(sets)[2], index == "bi_choice")
-bi3_knew <- filter(estimates, set == names(sets)[3], index == "bi_choice")
+bi3_naive <- filter(estimates, set == names(sets)[3], index == "bi_choice")
 
 # The exclusion process ensures each included participant has data from at
 # least one test block, however, it does not guarantee no time-outed trials
@@ -616,7 +623,7 @@ blocking:
 
 - **primary set:** `r print_test(bi2_prim)`,
 - **full sample:** `r print_test(bi2_full)`,
-- **knowledge-based exclusion:** `r print_test(bi2_knew)`.
+- **naive set:** `r print_test(bi2_naive)`.
 
 By comparison, @beesley2011 reported a mean of 2.03 (*N* = 26, *t*(25) = 2.74),
 i.e., *d*~z~ of about 0.55, which is noticeably larger than the present
@@ -641,7 +648,7 @@ below, were as follows:
 
 - **primary set:** `r print_test(bi3_prim)`,
 - **full sample:** `r print_test(bi3_full)`,
-- **knowledge-based exclusion:** `r print_test(bi3_knew)`.
+- **naive set:** `r print_test(bi3_naive)`.
 
 [^1]: This is equivalent to the specification of @paskewitz2020, which scores
 each response by the outcome it names rather than by its consistency with
@@ -679,11 +686,12 @@ aims of the  large-scale `fba-allergy-online-02` that is to follow.
 
 ::: {.callout-important title="Effect size sensitivity to prior knowledge"}
 In the feasibility study, the effect size point estimate was cut to about half
-or less after participants claiming prior knowledge of the design, counting
-yours truly, were excluded. Importantly, it remains positive. This estimate will
-serve as a "worst-case scenario" value during power analysis, computed to guide
-additional data collection if `fba-allergy-online-02` fails to detect blocking
-following a power analysis based on the primary and full sample estimates.
+or less in the naive set, i.e., after participants reporting prior knowledge,
+counting yours truly, were excluded. Importantly, it remains positive. This
+estimate will serve as a "worst-case scenario" value during power analysis,
+computed to guide additional data collection if `fba-allergy-online-02` fails to
+detect blocking following a power analysis based on the primary and full sample
+estimates.
 :::
 
 ## Stability across test blocks {#sec-stability}
@@ -709,9 +717,8 @@ Stability of BI~2~ and BI~3~ in in the three analysis sets is evaluated by:
 
 #### Average per block blocking
 
-The three figures below show how the BI~2~ and BI ~3~ indices change across
-blocks as measured in participants of the primary set, full sample, and primary
-with participants claiming knowledge of the design excluded, respectively. All
+The three figures below show how the BI~2~ and BI~3~ indices change across
+blocks in the primary set, the full sample and the naive set, respectively. All
 show weak evidence of a relatively small blocking effect, with little if any
 attenuation across the six blocks
 
@@ -732,8 +739,8 @@ fig_blocking_blocks(indices_blocks, indices_pooled, sets[[2L]])
 ```
 
 ```{r}
-#| label: fig-feasibility-blocking-blocks-knew
-#| fig-cap: "BI~2~ and BI~3~ of the primary set **without participants reporting prior knowledge**, per test block and over all test blocks. Violins and grey points show the participants' indices, black points and bars show the mean and one between-participant standard error each way. The dotted line marks no blocking."
+#| label: fig-feasibility-blocking-blocks-naive
+#| fig-cap: "BI~2~ and BI~3~ of the **naive set** per test block and over all test blocks. Violins and grey points show the participants' indices, black points and bars show the mean and one between-participant standard error each way. The dotted line marks no blocking."
 #| fig-width: 8
 #| fig-height: 6
 fig_blocking_blocks(indices_blocks, indices_pooled, sets[[3L]])
@@ -849,8 +856,8 @@ model_bi2_prim <- filter(level, set == names(sets)[1L], index == "bi_confidence"
 model_bi3_prim <- filter(level, set == names(sets)[1L], index == "bi_choice")
 model_bi2_full <- filter(level, set == names(sets)[2L], index == "bi_confidence")
 model_bi3_full <- filter(level, set == names(sets)[2L], index == "bi_choice")
-model_bi2_knew <- filter(level, set == names(sets)[3L], index == "bi_confidence")
-model_bi3_knew <- filter(level, set == names(sets)[3L], index == "bi_choice")
+model_bi2_naive <- filter(level, set == names(sets)[3L], index == "bi_confidence")
+model_bi3_naive <- filter(level, set == names(sets)[3L], index == "bi_choice")
 ```
 :::
 
@@ -883,8 +890,8 @@ In the primary set, the common drift per block was
 points of signed confidence for BI~2~ and
 `r sprintf("%.2f [%.2f, %.2f]", drift_bi3$estimate, drift_bi3$ci_low, drift_bi3$ci_high)`
 on the logit scale for BI~3~, indicating similarly slow drift towards zero for
-both types of responses. On the other hand, in the full sample and primary
-sample without participants knowing the design, only the signed confidence
+both types of responses. On the other hand, in the full sample and the naive
+set, only the signed confidence
 variable showed weak tendency to decline across blocks, while the choice 
 variable's common drift rate was estimated at level practically equivalent to
 zero. It should be borne in mind, however, that all of these estimates are
@@ -936,8 +943,8 @@ confidence bands.
 | `r names(sets)[1L]` | BI~3~ | `r sprintf("%.2f [%.2f, %.2f]", bi3_prim$estimate, bi3_prim$ci_low, bi3_prim$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi3_prim$index_scale, model_bi3_prim$index_low, model_bi3_prim$index_high)` |
 | `r names(sets)[2L]` | BI~2~ | `r sprintf("%.2f [%.2f, %.2f]", bi2_full$estimate, bi2_full$ci_low, bi2_full$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi2_full$index_scale, model_bi2_full$index_low, model_bi2_full$index_high)` |
 | `r names(sets)[2L]` | BI~3~ | `r sprintf("%.2f [%.2f, %.2f]", bi3_full$estimate, bi3_full$ci_low, bi3_full$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi3_full$index_scale, model_bi3_full$index_low, model_bi3_full$index_high)` |
-| `r names(sets)[3L]` | BI~2~ | `r sprintf("%.2f [%.2f, %.2f]", bi2_knew$estimate, bi2_knew$ci_low, bi2_knew$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi2_knew$index_scale, model_bi2_knew$index_low, model_bi2_knew$index_high)` |
-| `r names(sets)[3L]` | BI~3~ | `r sprintf("%.2f [%.2f, %.2f]", bi3_knew$estimate, bi3_knew$ci_low, bi3_knew$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi3_knew$index_scale, model_bi3_knew$index_low, model_bi3_knew$index_high)` |
+| `r names(sets)[3L]` | BI~2~ | `r sprintf("%.2f [%.2f, %.2f]", bi2_naive$estimate, bi2_naive$ci_low, bi2_naive$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi2_naive$index_scale, model_bi2_naive$index_low, model_bi2_naive$index_high)` |
+| `r names(sets)[3L]` | BI~3~ | `r sprintf("%.2f [%.2f, %.2f]", bi3_naive$estimate, bi3_naive$ci_low, bi3_naive$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi3_naive$index_scale, model_bi3_naive$index_low, model_bi3_naive$index_high)` |
 
 
 # Conclusions
@@ -960,9 +967,9 @@ starts_per_kept_low <- 1 / stats::binom.test(n_kept, n_records)$conf.int[1]
   In the LABELS batch alone, `r print_n_pct(n_kept_labels, n_rec_labels)`
   records were analysed.
 * The blocking indices analysis point to a small-to-moderate effect, which
-  roughly halved when participants claiming to already know the design were
-  excluded, although these estimates must be interpreted cautiously given the
-  small sample size.
+  roughly halved in the naive set, i.e., when participants reporting prior
+  knowledge were excluded, although these estimates must be interpreted
+  cautiously given the small sample size.
 * Finally, the stability analysis provides some, albeit inconclusive evidence,
   that six-block mean-based blocking indexes may be valid in terms of a lack
   of substantial drift in participant response tendencies. This conclusion seems
