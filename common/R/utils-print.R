@@ -43,3 +43,44 @@ print_num_word <- function(x, any = FALSE) {
   }
   as.character(x)
 }
+
+
+#' Print an estimate with its standard error and confidence interval
+#'
+#' @param row A data frame with one row and columns `estimate`, `sd`, `ci_low`,
+#'   `ci_high` and `perc`.
+#'
+#' @returns Character(1), e.g. `"M = 2.03, SD = 0.74, 95% CI [0.51, 3.55]"`.
+print_estimate <- function(row) {
+  stopifnot(nrow(row) == 1L)
+  sprintf(
+    "*M* = %.2f, *SD* = %.2f, %s%% CI [%.2f, %.2f]",
+    row$estimate,
+    row$sd,
+    row$perc * 100,
+    row$ci_low,
+    row$ci_high
+  )
+}
+
+
+#' Print a one-sample t-test with its standardised effect
+#'
+#' @param row A data frame with one row and columns `t`, `df`, `p` and `d`.
+#'
+#' @returns Character(1), e.g. `"t(25) = 2.74, p = .011, d = 0.55"`.
+print_test <- function(row) {
+  stopifnot(nrow(row) == 1L)
+  p <- if (row$p < 0.001) {
+    "< .001"
+  } else {
+    paste("=", sub("^0", "", sprintf("%.3f", row$p)))
+  }
+  sprintf(
+    "*t*(%d) = %.2f, *p* %s, *d* = %.2f",
+    row$df,
+    row$t,
+    p,
+    row$d
+  )
+}
