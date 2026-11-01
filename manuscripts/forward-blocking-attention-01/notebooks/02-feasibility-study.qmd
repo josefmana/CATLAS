@@ -669,6 +669,19 @@ The table below lists the effect size estimates of all analysis sets and their
 tbl_power(estimates)
 ```
 
+::: {.callout-note collapse="true" title="R code: Export for the power analysis"}
+```{r}
+#| label: feasibility-export
+# The power analysis notebook (`03-replication-power.qmd`) reads the pilot
+# estimates and the attrition funnel from the manuscript's `outputs/` folder,
+# which git ignores. Both are aggregates and contain no participant identifiers.
+outputs <- file.path(REPO, "manuscripts", "forward-blocking-attention-01", "outputs")
+dir.create(outputs, showWarnings = FALSE)
+saveRDS(estimates, file.path(outputs, "02-feasibility-estimates.rds"))
+saveRDS(funnel, file.path(outputs, "02-feasibility-funnel.rds"))
+```
+:::
+
 ::: {.callout-warning title="Take-aways for the pre-registration"}
 The main estimates (primary and full sample) yielded effect sizes *d*~z~ ranging
 `r es_range`. These are noticeably smaller than *d*~z~ &approx; 0.54 observed by
@@ -984,7 +997,7 @@ thus assumes approximately **50% drop-out**.
 
 Furthermore, the blocking computations indicate that the power analysis should
 assume a **small-to-moderate effect size in the *d*~z~ = `r es_range` range**
-(compared to *d*~z~ &approx; 0.55 observed by @beesley2011), with a worst-case
+(compared to *d*~z~ &approx; 0.54 observed by @beesley2011), with a worst-case
 scenario reaching approximately half of this range.
 
 Finally, **stability of the indices** must be tested on the
