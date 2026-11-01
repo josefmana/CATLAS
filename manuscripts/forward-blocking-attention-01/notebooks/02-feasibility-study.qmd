@@ -15,9 +15,6 @@ authors:
     roles: [conceptualization, data curation] 
     corresponding: true
 bibliography: ../../../common/references.bib
-knitr:
-  opts_chunk:
-    message: false
 ---
 
 >In this notebook, I present the results of the pilot study run between 9^th^
