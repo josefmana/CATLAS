@@ -30,6 +30,16 @@ print_min <- function(x) {
 }
 
 
+#' Print a range with two decimals
+#' 
+#' @param x Numeric. Value to take from, containing at least two values.
+#' 
+#' @returns Character(1), the min to max separated by an en dash.
+print_range <- function(x) {
+  sprintf("%.2f\u2013%.2f", round(range(x)[[1L]], 2), round(range(x)[[2L]], 2))
+}
+
+
 #' Print a whole number in words
 #'
 #' @param x Integer(1).
@@ -82,5 +92,39 @@ print_test <- function(row) {
     row$t,
     p,
     row$d
+  )
+}
+
+
+#' Print standardised effect sizes with two decimals
+#'
+#' @param d Numeric. Effect sizes.
+#'
+#' @returns Character, as many elements as `d`, e.g. `"0.55"`.
+print_d <- function(d) {
+  sprintf("%.2f", round(d, 2))
+}
+
+
+#' Print a confidence interval in square brackets with two decimals
+#'
+#' @param l,u Numeric. Lower and upper bounds.
+#'
+#' @returns Character, as many elements as `l`, e.g. `"[0.13, 0.96]"`.
+print_ci <- function(l, u) {
+  sprintf("[%.2f, %.2f]", round(l, 2), round(u, 2))
+}
+
+
+#' Print p-values in APA style, with their relation sign
+#'
+#' @param p Numeric. The p-values.
+#'
+#' @returns Character, as many elements as `p`, e.g. `"= .011"` or `"< .001"`.
+print_p <- function(p) {
+  ifelse(
+    p < 0.001,
+    "< .001",
+    paste("=", sub("^0", "", sprintf("%.3f", p)))
   )
 }
