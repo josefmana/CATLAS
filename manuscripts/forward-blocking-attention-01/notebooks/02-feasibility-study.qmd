@@ -550,7 +550,7 @@ sets <- list_analysis_sets(meta_screened, ids_structural, ids_naive)
 
 # The primary set's indices must fully coincide with the screened bundle
 stopifnot(identical(
-  filter(indices_first, id %in% sets[[1]]),
+  filter(indices_first, id %in% sets[[2]]),
   index_blocking(score_blocking(fba_screened, silence = TRUE), silence = TRUE)
 ))
 
@@ -569,11 +569,11 @@ estimates <-
   )
 
 # The estimates quoted in the text: primary set first, full sample second
-bi2_prim <- filter(estimates, set == names(sets)[1], index == "bi_confidence")
-bi2_full <- filter(estimates, set == names(sets)[2], index == "bi_confidence")
+bi2_prim <- filter(estimates, set == names(sets)[2], index == "bi_confidence")
+bi2_full <- filter(estimates, set == names(sets)[1], index == "bi_confidence")
 bi2_naive <- filter(estimates, set == names(sets)[3], index == "bi_confidence")
-bi3_prim <- filter(estimates, set == names(sets)[1], index == "bi_choice")
-bi3_full <- filter(estimates, set == names(sets)[2], index == "bi_choice")
+bi3_prim <- filter(estimates, set == names(sets)[2], index == "bi_choice")
+bi3_full <- filter(estimates, set == names(sets)[1], index == "bi_choice")
 bi3_naive <- filter(estimates, set == names(sets)[3], index == "bi_choice")
 
 # The exclusion process ensures each included participant has data from at
@@ -618,12 +618,12 @@ The results are summarised in the table below. In all three analysis sets, the
 data provided only weak evidence against the directional null hypothesis of no
 blocking:
 
-- **primary set:** `r print_test(bi2_prim)`,
 - **full sample:** `r print_test(bi2_full)`,
+- **learned (primary) set:** `r print_test(bi2_prim)`,
 - **naive set:** `r print_test(bi2_naive)`.
 
 By comparison, @beesley2011 reported a mean of 2.03 (*N* = 26, *t*(25) = 2.74),
-i.e., *d*~z~ of about 0.55, which is noticeably larger than the present
+i.e., *d*~z~ of about 0.54, which is noticeably larger than the present
 estimates. However, their estimate lies within the 90% confidence intervals of
 all three analysis sets.
 
@@ -643,8 +643,8 @@ eight-trial test block design as used here, BI~3~ ranges from &minus;4 to 4 with
 higher values indicating more blocking. The results, summarised in the table
 below, were as follows:
 
-- **primary set:** `r print_test(bi3_prim)`,
 - **full sample:** `r print_test(bi3_full)`,
+- **learned (primary) set:** `r print_test(bi3_prim)`,
 - **naive set:** `r print_test(bi3_naive)`.
 
 [^1]: This is equivalent to the specification of @paskewitz2020, which scores
@@ -671,7 +671,7 @@ tbl_power(estimates)
 
 ::: {.callout-warning title="Take-aways for the pre-registration"}
 The main estimates (primary and full sample) yielded effect sizes *d*~z~ ranging
-`r es_range`. These are noticeably smaller than *d*~z~ &approx; 0.55 observed by
+`r es_range`. These are noticeably smaller than *d*~z~ &approx; 0.54 observed by
 @beesley2011. However, they fall within the small-to-medium range usually
 considered realistic for psychological research.
 
@@ -724,7 +724,7 @@ attenuation across the six blocks
 #| fig-cap: "BI~2~ and BI~3~ of the **primary set** per test block and over all test blocks. Violins and grey points show the participants' indices, black points and bars show the mean and one between-participant standard error each way. The dotted line marks no blocking."
 #| fig-width: 10
 #| fig-height: 8
-fig_blocking_blocks(indices_blocks, indices_pooled, sets[[1L]])
+fig_blocking_blocks(indices_blocks, indices_pooled, sets[[2L]])
 ```
 
 ```{r}
@@ -732,7 +732,7 @@ fig_blocking_blocks(indices_blocks, indices_pooled, sets[[1L]])
 #| fig-cap: "BI~2~ and BI~3~ of the **full sample** per test block and over all test blocks. Violins and grey points show the participants' indices, black points and bars show the mean and one between-participant standard error each way. The dotted line marks no blocking."
 #| fig-width: 8
 #| fig-height: 6
-fig_blocking_blocks(indices_blocks, indices_pooled, sets[[2L]])
+fig_blocking_blocks(indices_blocks, indices_pooled, sets[[1L]])
 ```
 
 ```{r}
@@ -830,13 +830,13 @@ drift <-
 
 drift_bi2 <- filter(
   drift,
-  set == names(sets)[1],
+  set == names(sets)[2],
   index == "bi_confidence"
 )
 
 drift_bi3 <- filter(
   drift,
-  set == names(sets)[1],
+  set == names(sets)[2],
   index == "bi_choice"
 )
 
@@ -849,10 +849,10 @@ level <-
     term == "(Intercept)"
   )
 
-model_bi2_prim <- filter(level, set == names(sets)[1L], index == "bi_confidence")
-model_bi3_prim <- filter(level, set == names(sets)[1L], index == "bi_choice")
-model_bi2_full <- filter(level, set == names(sets)[2L], index == "bi_confidence")
-model_bi3_full <- filter(level, set == names(sets)[2L], index == "bi_choice")
+model_bi2_prim <- filter(level, set == names(sets)[2L], index == "bi_confidence")
+model_bi3_prim <- filter(level, set == names(sets)[2L], index == "bi_choice")
+model_bi2_full <- filter(level, set == names(sets)[1L], index == "bi_confidence")
+model_bi3_full <- filter(level, set == names(sets)[1L], index == "bi_choice")
 model_bi2_naive <- filter(level, set == names(sets)[3L], index == "bi_confidence")
 model_bi3_naive <- filter(level, set == names(sets)[3L], index == "bi_choice")
 ```
@@ -909,7 +909,7 @@ choice and confidence data separately, predicting that the **choice data will
 not drift significantly across blocks**, whereas the **confidence data will
 monotonically decrease across blocks**. For closer specification and the
 predictions' relation to the main study, see the
-[Experiment 1: Power Analysis](03-replication-online-power.qmd) notebook.
+[Experiment 1: Power Analysis](03-replication-power.qmd) notebook.
 :::
 
 ```{r}
@@ -936,10 +936,10 @@ confidence bands.
 
 | Set | Index | Mean-based | Model-based |
 |:------|:--:|:---:|:---:|
-| `r names(sets)[1L]` | BI~2~ | `r sprintf("%.2f [%.2f, %.2f]", bi2_prim$estimate, bi2_prim$ci_low, bi2_prim$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi2_prim$index_scale, model_bi2_prim$index_low, model_bi2_prim$index_high)` |
-| `r names(sets)[1L]` | BI~3~ | `r sprintf("%.2f [%.2f, %.2f]", bi3_prim$estimate, bi3_prim$ci_low, bi3_prim$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi3_prim$index_scale, model_bi3_prim$index_low, model_bi3_prim$index_high)` |
-| `r names(sets)[2L]` | BI~2~ | `r sprintf("%.2f [%.2f, %.2f]", bi2_full$estimate, bi2_full$ci_low, bi2_full$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi2_full$index_scale, model_bi2_full$index_low, model_bi2_full$index_high)` |
-| `r names(sets)[2L]` | BI~3~ | `r sprintf("%.2f [%.2f, %.2f]", bi3_full$estimate, bi3_full$ci_low, bi3_full$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi3_full$index_scale, model_bi3_full$index_low, model_bi3_full$index_high)` |
+| `r names(sets)[1L]` | BI~2~ | `r sprintf("%.2f [%.2f, %.2f]", bi2_full$estimate, bi2_full$ci_low, bi2_full$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi2_full$index_scale, model_bi2_full$index_low, model_bi2_full$index_high)` |
+| `r names(sets)[1L]` | BI~3~ | `r sprintf("%.2f [%.2f, %.2f]", bi3_full$estimate, bi3_full$ci_low, bi3_full$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi3_full$index_scale, model_bi3_full$index_low, model_bi3_full$index_high)` |
+| `r names(sets)[2L]` | BI~2~ | `r sprintf("%.2f [%.2f, %.2f]", bi2_prim$estimate, bi2_prim$ci_low, bi2_prim$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi2_prim$index_scale, model_bi2_prim$index_low, model_bi2_prim$index_high)` |
+| `r names(sets)[2L]` | BI~3~ | `r sprintf("%.2f [%.2f, %.2f]", bi3_prim$estimate, bi3_prim$ci_low, bi3_prim$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi3_prim$index_scale, model_bi3_prim$index_low, model_bi3_prim$index_high)` |
 | `r names(sets)[3L]` | BI~2~ | `r sprintf("%.2f [%.2f, %.2f]", bi2_naive$estimate, bi2_naive$ci_low, bi2_naive$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi2_naive$index_scale, model_bi2_naive$index_low, model_bi2_naive$index_high)` |
 | `r names(sets)[3L]` | BI~3~ | `r sprintf("%.2f [%.2f, %.2f]", bi3_naive$estimate, bi3_naive$ci_low, bi3_naive$ci_high)` | `r sprintf("%.2f [%.2f, %.2f]", model_bi3_naive$index_scale, model_bi3_naive$index_low, model_bi3_naive$index_high)` |
 

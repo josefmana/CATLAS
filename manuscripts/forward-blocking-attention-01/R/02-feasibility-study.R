@@ -580,11 +580,11 @@ tbl_alpha <- function(sensitivity, applied) {
 #' @returns A `gt` table.
 tbl_analysis_sets <- function(meta_screened, ids_structural, ids_naive) {
   tibble::tibble(
-    set  = c("1 \u00b7 Primary", "2 \u00b7 Full sample", "3 \u00b7 Naive"),
-    data = c("After the learning-based exclusion", "Before the learning-based exclusion", "After the prior-knowledge exclusion"),
+    set  = c("1 \u00b7 Full sample", "2 \u00b7 Learned", "3 \u00b7 Naive"),
+    data = c("Before the learning-based exclusion", "After the learning-based exclusion", "After the prior-knowledge exclusion"),
     n    = c(
-      nrow(meta_screened),
       length(ids_structural),
+      nrow(meta_screened),
       length(ids_naive)
     )
   ) |>
@@ -614,8 +614,8 @@ list_analysis_sets <- function(meta_screened, ids_structural, ids_naive) {
   ))
 
   list(
-    "1 \u00b7 Primary" = ids_screened,
-    "2 \u00b7 Full sample" = ids_structural,
+    "1 \u00b7 Full sample" = ids_structural,
+    "2 \u00b7 Learned" = ids_screened,
     "3 \u00b7 Naive" = ids_naive
   )
 }
