@@ -1,6 +1,6 @@
 # 02-feasibility-study.R
 #
-# Contains all functions bespoken to the `02-feasbility-study.qmd` notebook.
+# Contains all functions bespoke to the `02-feasbility-study.qmd` notebook.
 # 
 # Function that are more general live either in `../../../common/R` when
 # CATLAS-manuscripts specific (e.g., printing functions and visual identity),
