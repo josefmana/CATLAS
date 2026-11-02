@@ -128,3 +128,16 @@ print_p <- function(p) {
     paste("=", sub("^0", "", sprintf("%.3f", p)))
   )
 }
+
+
+#' Print statistical power as a whole percentage
+#'
+#' Values that would round to 100% are printed as "> 99%", because power never
+#' reaches 100%.
+#'
+#' @param x Numeric. Power, between 0 and 1.
+#'
+#' @returns Character, as many elements as `x`, e.g. `"35%"` or `"> 99%"`.
+print_power <- function(x) {
+  ifelse(x >= 0.995, "> 99%", sprintf("%.0f%%", 100 * x))
+}
