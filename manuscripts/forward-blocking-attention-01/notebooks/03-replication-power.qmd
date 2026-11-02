@@ -36,7 +36,7 @@ In this report, the aims are to:
 
 ::: {.callout-warning title="90% confidence intervals"}
 Because the replication study `fba-allergy-online-02` aims to detect blocking
-in a design for which there is a strong theoretical justification of expecting
+in a design for which there is a strong theoretical justification for expecting
 its direction *a priori*, the study pre-registers and employs a one-sided *t*-test
 with the alternative hypothesis of the effect being greater than zero.
 Consequently, all effect size estimates presented in this notebook are
@@ -66,7 +66,7 @@ source(file.path(REPO, "manuscripts", "forward-blocking-attention-01", "R", "03-
 # Because the replication aims to detect an effect in the predicted direction
 # at the 5% level of significance, alpha for CIs is set at 0.10, i.e., 90% CIs, which
 # align with this aim better than the typical 95% CIs.
-alpha <- .10
+alpha_ci <- .10
 ```
 :::
 
@@ -91,7 +91,7 @@ literature <- tibble::tribble(
 # Cohen's d_z with its CI, and the two-sided p-value of each reported test
 lit <-
   literature |>
-  standardise_reported_tests(level = 1 - alpha) |>
+  standardise_reported_tests(level = 1 - alpha_ci) |>
   split(~ study)
 
 # Raw effect magnitude of Beesley and Le Pelley (2011), with the standard
@@ -99,8 +99,8 @@ lit <-
 x_bar <- 2.03
 s <- x_bar * sqrt(lit$beesley2011$n) / lit$beesley2011$t
 se <- s / sqrt(lit$beesley2011$n)
-ci_low <- x_bar - stats::qt(alpha / 2, lit$beesley2011$df, lower.tail = FALSE) * se
-ci_upp <- x_bar + stats::qt(alpha / 2, lit$beesley2011$df, lower.tail = FALSE) * se
+ci_low <- x_bar - stats::qt(alpha_ci / 2, lit$beesley2011$df, lower.tail = FALSE) * se
+ci_upp <- x_bar + stats::qt(alpha_ci / 2, lit$beesley2011$df, lower.tail = FALSE) * se
 ```
 :::
 
@@ -114,7 +114,7 @@ the observed difference is significantly different from zero, *t*(25) = 2.74,
 *p* = .011.
 
 [^1]: See the [Dependent Variables](01-estimands-estimates.qmd) notebook for
-definition of BI~2~ and other blocking indexes used to estimate the effect of
+definition of BI~2~ and other blocking indices used to estimate the effect of
 blocking in contingency learning experimental paradigms.
 
 Although the authors do not directly provide estimates of effect variance and
@@ -129,7 +129,7 @@ $$2.74 = \frac{2.03-0}{s/\sqrt{26}}$$
 $$s = \frac{2.03\sqrt{26}}{2.74} \approx 3.78$$
 
 Secondly, the standardised effect size, Cohen's *d*~z~ (the mean divided by the
-standard deviation,), follows as:
+standard deviation), follows as:
 
 $$d_z = \frac{\bar{X}}{s} = \frac{t}{\sqrt{N}} = \frac{2.74}{\sqrt{26}} \approx 0.54$$
 
@@ -155,9 +155,9 @@ learning.
 
 @lepelley2007 measured blocking using a BI~1~ type of blocking index, with the
 exception that instead of evaluating predictive value of each cue separately,
-cue-compounds including either two blocked or two control cues associated with
+cue compounds including either two blocked or two control cues associated with
 the same outcome were used. In a total of `r lit$lepelley2007$n` participants,
-they observed a statistically significant blocking,
+they observed a statistically significant blocking effect,
 *F*(1, `r lit$lepelley2007$df`) = `r lit$lepelley2007$statistic`,
 *p* `r print_p(lit$lepelley2007$p)`, translating to
 $d_z = `r print_d(lit$lepelley2007$d)` \ `r print_ci(lit$lepelley2007$d_low, lit$lepelley2007$d_high)`$.
@@ -168,7 +168,7 @@ $d_z = `r print_d(lit$lepelley2007$d)` \ `r print_ci(lit$lepelley2007$d_low, lit
 cues with novel control cues after Stage 3 learning, in their Experiments 1 and
 3.[^2]
 
-[^2]: Their Experiment 2, although using 2AFC *negation test* with BI~3~-like
+[^2]: Their Experiment 2, although using 2AFC *negation test* with a BI~3~-like
 measure of blocking, omits the critical blocked cue vs. novel control cue
 comparisons.
 
@@ -215,14 +215,14 @@ in full in the [Feasibility Study](02-feasibility-study.qmd) notebook. The
 analysis was conducted on three analysis data sets with increasingly tighter
 exclusion criteria:
 
-1. the **full sample** excluded only participants without sufficient
+1. the **Full sample** excluded only participants without sufficient
    experimental data,
-2. the **learned set** additionally excluded participants failing the learning
+2. the **Learned set** additionally excluded participants failing the learning
    check, and
-3. the **naive set** also excluded participants claiming to know the
+3. the **Naive set** also excluded participants claiming to know the
    experiment.
 
-For reasons explained below, the learned and naive sets swap their roles for the
+For reasons explained below, the Learned and Naive sets swap their roles for the
 replication study.
 
 ::: {.callout-note collapse="true" title="R code: Feasibility estimates"}
@@ -244,7 +244,7 @@ stopifnot(
   setequal(as.character(estimates$set), sets),
   nrow(estimates) == 6L,
   all(estimates$alternative == "greater"),
-  isTRUE(all.equal(unique(estimates$perc), 1 - alpha))
+  isTRUE(all.equal(unique(estimates$perc), 1 - alpha_ci))
 )
 
 d_bi2 <- purrr::map_dbl(sets, \(s) {
@@ -268,10 +268,13 @@ stopifnot(
 
 # Point estimates of BI3 as range for text
 bi3_range <- print_range(c(d_bi3[["learned"]], d_bi3[["full"]]))
+
+# Prepare estimates for a table
+prep_estimates <- prepare_pilot_estimates(estimates)
 ```
 :::
 
-::: {.callout-important title="The learned and the naive set swap roles"}
+::: {.callout-important title="The Learned and the Naive set swap roles"}
 | Set | Exclusions | Feasibility | Replication |
 |:--|:----|:--|:--|
 | 1 · Full sample | structural only | sensitivity | sensitivity |
@@ -280,7 +283,7 @@ bi3_range <- print_range(c(d_bi3[["learned"]], d_bi3[["full"]]))
 
 The table shows each analysis set used in the feasibility study and planned to
 be used in the replication study, together with their role in each analysis. The
-naive set leaves out participants who report prior knowledge of similar
+Naive set leaves out participants who report prior knowledge of similar
 experiments, and may thus answer according to what they expect the study to show
 rather than according to what they learned. In the feasibility study, the
 primary analysis set kept these participants
@@ -288,13 +291,13 @@ primary analysis set kept these participants
 
 In `fba-allergy-online-02`, the debriefing question becomes a two-parter (asking
 about prior experiments of the same kind, and critically adding a question about
-knowing or guessing what the study tested) and the naive set becomes the primary
+knowing or guessing what the study tested) and the Naive set becomes the primary
 analysis set.
 :::
 
 ### Effect size estimates
 
-In the full sample and the learned set, BI~2~ on the first test block yielded
+In the Full sample and the Learned set, BI~2~ on the first test block yielded
 *d*~z~ of `r print_d(d_bi2[["full"]])` and `r print_d(d_bi2[["learned"]])`,
 respectively, and BI~3~ over all test blocks `r print_d(d_bi3[["full"]])`
 and `r print_d(d_bi3[["learned"]])`. In the naive set, both effect sizes were cut
@@ -307,9 +310,7 @@ table below).
 ```{r}
 #| label: tbl-replication-pwr-feasibility
 #| tbl-cap: "Effect size estimates of the feasibility study (`fba-allergy-online-01`) per analysis set."
-estimates |>
-  prepare_pilot_estimates() |>
-  tbl_pilot_estimates(level = 1 - alpha)
+tbl_pilot_estimates(prep_estimates, 1 - alpha_ci)
 ```
 
 ### Retention
@@ -318,7 +319,6 @@ estimates |>
 ```{r}
 #| label: replication-pwr-retention
 retention <- summarise_retention(funnel, "Total")
-retention_labels <- summarise_retention(funnel, "LABELS")
 
 # The three steps that removed participants in the pilot
 stopifnot(identical(
@@ -338,28 +338,29 @@ n_naive_labels <- funnel$LABELS[nrow(funnel)]
 
 # Retention if no run were incomplete
 yield_complete <- prod(yield[c("Insufficient learning", "Prior knowledge")])
+
+# Prepare funnel data for table
+prep_funnel <- prepare_retention(funnel)
 ```
 :::
 
 Of the `r print_num_word(n_records, TRUE)` JATOS records of the feasibility
 study, `r print_num_word(n_learned, TRUE)`
 (`r round(100 * n_learned / n_records)`%)
-reached the learned set, and `r print_num_word(n_naive)`
+reached the Learned set, and `r print_num_word(n_naive)`
 (`r round(100 * n_naive / n_records)`%)
-reached the naive set (see the table below).
+reached the Naive set (see the table below).
 
 ```{r}
 #| label: tbl-replication-pwr-retention
-#| tbl-cap: "Participant retention through the exclusion steps of the feasibility study, over all recruitment channels and in the LABELS channel alone."
-funnel |>
-  prepare_retention() |>
-  tbl_retention()
+#| tbl-cap: "Participant retention through the exclusion steps of the feasibility study, over all recruitment channels and in the LABELS channel specifically."
+tbl_retention(prep_funnel)
 ```
 
 ::: {.callout-warning title="Assumed retention for the `fba-allergy-online-02` study"}
 Following the retention rates observed in the feasibility study, I assume
 50% retention for `fba-allergy-online-02`, i.e., that half of the participants
-who start the experiment will be included in the naive set, the primary analysis
+who start the experiment will be included in the Naive set, the primary analysis
 set of the study. The assumption stems from three observations:
 
 - **Incomplete runs**, because of which
@@ -373,7 +374,7 @@ set of the study. The assumption stems from three observations:
   (`r sprintf("%.0f%%", 100 * yield[["Prior knowledge"]])`) multiply to
   `r sprintf("%.0f%%", 100 * yield_complete)`.
 - **In the LABELS channel**, from which `fba-allergy-online-02` recruits,
-  `r print_n_pct(n_naive_labels, n_records_labels)` records reached the naive
+  `r print_n_pct(n_naive_labels, n_records_labels)` records reached the Naive
   set.
 :::
 
@@ -383,8 +384,8 @@ set of the study. The assumption stems from three observations:
 ```{r}
 #| label: replication-pwr-scenarios
 # The three scenarios, rounded to two decimals as in the text: the original
-# study, the lower of the two main estimates of the feasibility study (the full
-# sample), and its naive set
+# study, the lower of the two main estimates of the feasibility study (the Full
+# sample), and its Naive set
 d_best <- round(lit$beesley2011$d, 2)
 d_real <- round(d_bi2[["full"]], 2)
 d_worst <- round(d_bi2[["naive"]], 2)
@@ -402,23 +403,23 @@ with those of the feasibility study into three scenarios:
 
 | Scenario | *d*~z~ | Reason |
 |:--|:-:|:---------|
-| *Worst* | `r d_worst` | Feasibility study's naive set estimate, an effect size considered to be small [cf. @lovakov2021] |
-| *Realistic* | `r d_real` | The lower of the feasibility study's full sample and learned set estimates, an effect size considered to be medium [cf. @lovakov2021] |
+| *Worst* | `r d_worst` | Feasibility study's Naive set estimate, an effect size considered to be small [cf. @lovakov2021] |
+| *Realistic* | `r d_real` | The lower of the feasibility study's Full sample and Learned set estimates, an effect size considered to be medium [cf. @lovakov2021] |
 | *Best* | `r d_best` | The point estimate of the original study [@beesley2011], an effect size between medium and large [cf. @lovakov2021] |
 
 ::: {.callout-important title="Effect size magnitude interpretation"}
 The size labels used in this notebook follow the empirically derived benchmarks
 of @lovakov2021, who set small, medium and large effects at *d* = 0.15, 0.36 and
-0.65, respectively. These serve as only a rough guide here, because of the exact
+0.65, respectively. These serve only as a rough guide here, because of the exact
 field they were derived from (social psychology, not learning, experimental or
 cognitive psychology), and the fact they describe standardised differences
 between groups or conditions, whose scale differs from that of *d*~z~, which is
 the mean of a within-participant index divided by its standard deviation.
-Nonetheless, being empirically-derived these values remain more representative
+Nonetheless, being empirically derived these values remain more representative
 of psychology research than the typically used *d* = 0.2, 0.5 and 0.8
 [e.g., @cohen1992]. Finally, the *Realistic* estimate from which appropriate
 sample size is computed here falls close to the effect size implied by
-@schäfer2019's estimate of *r* = 0.16 (translating to *d* &approx;
+@schäfer2019's estimate of *r* = .16 (translating to *d* &approx;
 `r print_d(d_schafer[1L])`) for pre-registered psychology studies.
 :::
 
@@ -427,15 +428,233 @@ The values in the table above are used by the power analysis to anchor sample
 size estimation. Specifically, the *Realistic* scenario *d*~z~ = `r d_real`
 serves as the basis for the sample size requirement for detecting the primary
 endpoint, i.e., BI~2~ calculated from the first test block. At the necessary sample
-size estimated this way, statistical power of the *Best-case* scenario *d*~z~ =
+size estimated this way, statistical power of the *Best* scenario *d*~z~ =
 `r d_best` and of the expected BI~3~ effect (*d*~z~ &approx; `r bi3_range`) is
-evaluated for informative purposes. Finally, the *Worst-case* *d*~z~ =
-`r d_worst` scenario serves to set the rules for group-sequential top-up
-sampling if the primary endpoint fails to be detected at the first look when
-estimated from a sample size based on the *Realistic* scenario power analysis
-(Aim 3, see below).
+evaluated for informative purposes. Finally, the *Worst* *d*~z~ = `r d_worst`
+scenario serves to set the rules for group-sequential top-up sampling if the
+primary endpoint fails to be detected at the first look when estimated from a
+sample size based on the *Realistic* scenario power analysis (Aim 3, see below).
 :::
 
 # Prospective power analysis
+
+The replication study's goal is twofold: (i) to test @beesley2011's original
+finding of forward blocking using their BI~2~ on the first test block, and (ii)
+to evaluate BI~3~'s suitability as an alternative index of blocking for the
+ensuing extension of their results. The power analysis rests only on the former,
+which is the only goal that governs declaration of (non-)replication of the
+original effect. The power for the latter is then evaluated at the sample size
+chosen for the former.
+
+Given the predicted direction of the effect, the replication tests the
+original's blocking measure ($\mathbb{E}(BI_2)$) with a one-sided one-sample
+*t*-test against no blocking ($\mathbb{E}(BI_2) = 0$) at &alpha; = .05. As
+blocking is theoretically justified in persons who successfully learned the
+training contingencies and can be contaminated by a tendency to conform to
+researchers' expectations in people who already know the phenomenon, all
+calculations in this section refer to the Naive analysis set, which serves
+as the primary set for `fba-allergy-online-02` analysis.
+
+This section computes the number of participants needed to detect blocking under
+each of the scenarios derived above with 80%, 90% and 95% power, and the number
+to recruit at the assumed 50% retention. All sample sizes refer to a single,
+fixed-sample analysis, without optional stopping.
+
+## Sample size
+
+::: {.callout-note collapse="true" title="R code: Sample size per scenario"}
+```{r}
+#| label: replication-pwr-sizes
+# The replication test: one-sided, at the 5% level (the CIs above use
+# `alpha_ci` = .10 for the same reason)
+alpha_test <- 0.05
+retention_assumed <- 0.50
+target_power <- c(0.80, 0.90, 0.95)
+
+scenarios <- c(
+  worst = d_worst,
+  realistic = d_real,
+  best = d_best
+)
+
+scenario_labels <- c(
+  worst = "Worst",
+  realistic = "Realistic",
+  best = "Best"
+)
+
+# Participants analysed for each scenario and target power, from {pwrss}, with
+# an independent check against the exact noncentral t distribution
+sizes <-
+  tidyr::expand_grid(
+    scenario = names(scenarios),
+    power = target_power
+  ) |>
+  dplyr::mutate(
+    d = unname(scenarios[scenario]),
+    n = purrr::map2_dbl(d, power, \(d, p) {
+      pwrss::power.t.student(
+        d = d,
+        power = p,
+        alpha = alpha_test,
+        alternative = "one.sided",
+        design = "one.sample",
+        verbose = 0
+      )$n
+    }),
+    recruit = ceiling(n / retention_assumed)
+  )
+
+stopifnot(identical(
+  as.integer(sizes$n),
+  purrr::map2_int(sizes$d, sizes$power, \(d, p) n_one_sample_t(d, p, alpha_test))
+))
+
+# Smooth curves of the required sample size across effect sizes (without
+# rounding)
+curve <-
+  tidyr::expand_grid(
+    d = seq(0.12, 0.70, by = 0.005),
+    power = target_power
+  ) |>
+  dplyr::mutate(n = purrr::map2_dbl(d, power, \(d, p) {
+    pwrss::power.t.student(
+      d = d,
+      power = p,
+      alpha = alpha_test,
+      alternative = "one.sided",
+      design = "one.sample",
+      ceil.n = FALSE,
+      verbose = 0
+    )$n
+  }))
+
+# Power under the other two scenarios at the sample sizes sized for the
+# Realistic one
+cross <-
+  tidyr::expand_grid(
+    target = target_power,
+    scenario = c("worst", "best")
+  ) |>
+  dplyr::mutate(
+    n = purrr::map_dbl(target, \(p) pick_size(sizes, "realistic", p)),
+    d = unname(scenarios[scenario]),
+    power = purrr::map2_dbl(d, n, \(d, n) {
+      pwrss::power.t.student(
+        d = d,
+        n2 = n,
+        alpha = alpha_test,
+        alternative = "one.sided",
+        design = "one.sample",
+        verbose = 0
+      )$power
+    })
+  )
+
+# Best-scenario power for the text, summarised when it is near 100%
+best_power_1 <- round(pick_power(cross, "best", 0.80), 2)
+best_power_2 <- round(pick_power(cross, "best", 0.90), 2)
+best_power_3 <- round(pick_power(cross, "best", 0.95), 2)
+
+best_power_text <- if (best_power_1 >= 0.99) {
+  "99% or more across the sample sizes"
+} else {
+  sprintf(
+    "%s, %s and %s",
+    print_power(best_power_1),
+    print_power(best_power_2),
+    print_power(best_power_3)
+  )
+}
+```
+:::
+
+Under the *Realistic* scenario (*d*~z~ = `r d_real`), the replication needs at
+minimum `r pick_size(sizes, "realistic", 0.80)`,
+`r pick_size(sizes, "realistic", 0.90)` and
+`r pick_size(sizes, "realistic", 0.95)` participants in the Naive set for 80%,
+90% and 95% power, respectively, yielding
+`r pick_size(sizes, "realistic", 0.80, "recruit")`,
+`r pick_size(sizes, "realistic", 0.90, "recruit")` and
+`r pick_size(sizes, "realistic", 0.95, "recruit")` participants to recruit (see
+the table and figure below). If the true effect were as small as in the
+*Worst* scenario, these sample sizes would result in the replication having only
+`r print_power(pick_power(cross, "worst", 0.80))`,
+`r print_power(pick_power(cross, "worst", 0.90))` and
+`r print_power(pick_power(cross, "worst", 0.95))` power, respectively. If it
+were as large as in the original study (*Best* scenario), power would be
+`r best_power_text`.
+
+```{r}
+#| label: tbl-replication-pwr-sizes
+#| tbl-cap: "Sample size required to detect blocking (BI~2~, first test block) under each scenario."
+tbl_sample_sizes(
+  sizes,
+  scenario_labels,
+  retention_assumed,
+  alpha_test,
+  chosen = "Realistic"
+)
+```
+
+```{r}
+#| label: fig-replication-pwr-curve
+#| fig-cap: "Sample size required to detect blocking (BI~2~, first test block) with 80%, 90% and 95% power across true effect sizes. The right axis shows the number of participants to recruit at the assumed retention. Dashed lines and labelled points mark the three scenarios. Note the logarithmic scale of the sample size."
+#| fig-width: 8
+#| fig-height: 6
+fig_power_curve(
+  curve,
+  sizes,
+  scenario_labels,
+  retention_assumed
+)
+```
+
+## Power of the alternative index
+
+The alternative index, i.e., BI~3~ computed over all six test blocks, is not
+used to decide about the sample size of the study. However, if blocking is
+detected in BI~3~, it becomes the blocking index of choice for
+`fba-allergy-online-03`, and consequently the power to detect BI~3~-based
+blocking at the selected sample size still matters. Assuming BI~3~’s true effect
+size equals one of the feasibility study’s point estimates, the table below
+shows the power of the one-sided *t*-test at the sample sizes under which the
+BI~2~-based test achieves 80%, 90% and 95% power under the *Realistic* scenario.
+
+::: {.callout-note collapse="true" title="R code: Power of the alternative index"}
+```{r}
+#| label: replication-pwr-bi3
+# BI3 effect sizes of the three analysis sets of the feasibility study, rounded
+d_bi3_assumed <- round(d_bi3, 2)
+
+bi3_power <-
+  tidyr::expand_grid(
+    target = target_power,
+    set = names(sets)
+  ) |>
+  dplyr::mutate(
+    n = purrr::map_dbl(target, \(p) pick_size(sizes, "realistic", p)),
+    d = unname(d_bi3_assumed[set]),
+    set = c(full = "Full sample", learned = "Learned set", naive = "Naive set")[set],
+    power = purrr::map2_dbl(d, n, \(d, n) {
+      pwrss::power.t.student(
+        d = d,
+        n2 = n,
+        alpha = alpha_test,
+        alternative = "one.sided",
+        design = "one.sample",
+        verbose = 0
+      )$power
+    })
+  )
+```
+:::
+
+```{r}
+#| label: tbl-replication-pwr-bi3
+#| tbl-cap: "Power of the alternative index test (BI~3~, test blocks 1&ndash;6) at the sample sizes estimated for BI~2~ under the *Realistic* scenario."
+tbl_bi3_power(bi3_power, alpha_test)
+```
+
 
 # References
