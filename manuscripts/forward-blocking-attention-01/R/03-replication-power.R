@@ -566,3 +566,286 @@ tbl_bi3_power <- function(bi3_power, alpha) {
       sub("^0", "", format(alpha))
     )))
 }
+
+
+## ---- 2.3 · Group-sequential top-up --------------------------------------------
+
+#' False-positive rate of testing twice at the full alpha
+#'
+#' The probability that a one-sided test at `alpha` rejects at look 1 or at
+#' look 2 when there is no effect, if both looks used the critical value of a
+#' single test. The test statistics of the two looks are correlated by
+#' \eqn{\sqrt{n_1 / n_2}} (normal approximation).
+#'
+#' @param n1,n2 Numeric(1). Participants analysed at looks 1 and 2 (`n2`
+#'   cumulative).
+#' @param alpha Numeric(1). The one-sided significance level.
+#'
+#' @returns Numeric(1), the false-positive rate.
+alpha_two_looks <- function(n1, n2, alpha) {
+  rho <- sqrt(n1 / n2)
+  crit <- stats::qnorm(1 - alpha)
+  neither <- stats::integrate(
+    \(z) stats::dnorm(z) * stats::pnorm((crit - rho * z) / sqrt(1 - rho^2)),
+    lower = -Inf,
+    upper = crit
+  )$value
+  1 - neither
+}
+
+
+
+#' Two-look group-sequential design of the replication
+#'
+#' The replication proper is look 1; look 2 is the pre-registered top-up. With
+#' `spending = "fixed"`, look 1 spends `alpha1` whatever share of the final
+#' sample it contains, and look 2 spends the rest.
+#'
+#' @param n1,n2 Numeric(1). Participants analysed at looks 1 and 2 (`n2` is
+#'   the cumulative total).
+#' @param alpha Numeric(1). The overall one-sided significance level.
+#' @param spending Character(1). `"fixed"`, `"asP"` or `"asOF"`.
+#' @param alpha1 Numeric(1). The alpha spent at look 1 with
+#'   `spending = "fixed"`.
+#'
+#' @returns An `{rpact}` design object.
+design_topup <- function(
+    n1, n2,
+    alpha,
+    spending = c("fixed", "asP", "asOF"),
+    alpha1 = NULL
+) {
+  spending <- match.arg(spending)
+  stopifnot(n1 < n2)
+
+  if (spending == "fixed") {
+    stopifnot(!is.null(alpha1), alpha1 < alpha)
+    return(rpact::getDesignGroupSequential(
+      kMax              = 2L,
+      alpha             = alpha,
+      sided             = 1L,
+      informationRates  = c(n1 / n2, 1),
+      typeOfDesign      = "asUser",
+      userAlphaSpending = c(alpha1, alpha)
+    ))
+  }
+
+  rpact::getDesignGroupSequential(
+    kMax             = 2L,
+    alpha            = alpha,
+    sided            = 1L,
+    informationRates = c(n1 / n2, 1),
+    typeOfDesign     = spending
+  )
+}
+
+
+#' Power of a two-look design for a one-sample t-test
+#'
+#' @param design From [design_topup()].
+#' @param n2 Numeric(1). Participants analysed at look 2 (cumulative).
+#' @param d Numeric(1). The true standardised mean, \eqn{d_z}.
+#'
+#' @returns Named numeric: `look1` (probability of rejecting at look 1) and
+#'   `overall` (probability of rejecting at either look).
+power_topup <- function(design, n2, d) {
+  r <- rpact::getPowerMeans(
+    design,
+    groups               = 1L,
+    thetaH0              = 0,
+    alternative          = d,
+    stDev                = 1,
+    maxNumberOfSubjects  = n2,
+    normalApproximation  = FALSE
+  )
+
+  c(
+    look1   = unname(r$rejectPerStage[1L, 1L]),
+    overall = unname(r$overallReject[1L])
+  )
+}
+
+
+#' Calibrate look 2 sample size of the top-up
+#'
+#' Searches (by bisection) the smallest cumulative sample at look 2 that gives
+#' the design the target overall power.
+#'
+#' @inheritParams design_topup
+#' @param d Numeric(1). The true standardised mean that look 2 is sized for.
+#' @param power Numeric(1). The target overall power, e.g. `0.80`.
+#' @param upper Numeric(1). Upper end of the search.
+#'
+#' @returns Integer(1), the participants analysed at look 2 (cumulative).
+size_topup <- function(
+    n1,
+    alpha,
+    spending,
+    alpha1 = NULL,
+    d,
+    power,
+    upper = 5000L
+) {
+  achieved <- function(n2) {
+    design <- design_topup(n1, n2, alpha, spending, alpha1)
+    power_topup(design, n2, d)[["overall"]]
+  }
+  stopifnot(achieved(upper) >= power)
+
+  lo <- n1 + 1L
+  hi <- upper
+  while (lo < hi) {
+    mid <- (lo + hi) %/% 2L
+    if (achieved(mid) >= power) hi <- mid else lo <- mid + 1L
+  }
+  as.integer(lo)
+}
+
+
+#' Table of the top-up at a range of retention rates
+#'
+#' @param by_retention From [topup_by_retention()], with the look-1 power under
+#'   the *Realistic* and *Worst* scenarios.
+#' @param recruit1 Numeric(1). Participants recruited for look 1.
+#'
+#' @returns A `gt` table with one row per retention rate: the Naive set at each
+#'   look, the nominal one-sided significance levels, the look-1 power under
+#'   the *Realistic* and *Worst* scenarios, and the participants recruited.
+tbl_topup_thresholds <- function(by_retention, recruit1, total_power) {
+  alpha1 <- unique(by_retention$p1)
+  stopifnot("Look 1 must have a single alpha level." = length(alpha1) == 1L)
+  
+  overall_power <- if (total_power < 1L) {
+    sprintf("%d%%", 100 * total_power)
+  } else {
+    sprintf("%d%%", total_power)
+  }
+  
+  by_retention |>
+    dplyr::mutate(
+      retention = sprintf("%.0f%%", 100 * retention),
+      p1        = paste("<", sub("^0", "", sprintf("%.3f", p1))),
+      p2        = paste("<", sub("^0", "", sprintf("%.4f", p2))),
+      dplyr::across(
+        c("look1_realistic", "look1_worst"),
+        print_power
+      ),
+      look2_power = overall_power
+    ) |>
+    dplyr::select(
+      retention,
+      n1, p1,
+      n2, p2,
+      look1_realistic, look1_worst,
+      look2_power,
+      recruit_look1, recruit_extra, recruit_total
+    ) |>
+    gt::gt() |>
+    gt::tab_spanner(
+      label   = gt::md("Look 1"),
+      columns = c("n1", "p1")
+    ) |>
+    gt::tab_spanner(
+      label   = gt::md("Look 2"),
+      columns = c("n2", "p2")
+    ) |>
+    gt::tab_spanner(
+      label   = "Power (look 1)",
+      columns = c("look1_realistic", "look1_worst")
+    ) |>
+    gt::tab_spanner(
+      label   = "Recruited",
+      columns = c("recruit_look1", "recruit_extra", "recruit_total")
+    ) |>
+    gt::cols_align(
+      align   = "center",
+      columns = tidyselect::everything()
+    ) |>
+    gt::cols_label(
+      retention       = "Retention",
+      n1              = gt::md("*n*"),
+      n2              = gt::md("*n*"),
+      p1              = gt::md("*p*"),
+      p2              = gt::md("*p*"),
+      look1_realistic = gt::md("*Realistic*"),
+      look1_worst     = gt::md("*Worst*"),
+      look2_power     = "Overall power",
+      recruit_look1   = "Look 1",
+      recruit_extra   = "Look 2",
+      recruit_total   = "Total"
+    ) |>
+    gt::tab_source_note(gt::md(sprintf(
+      paste(
+        "Illustration of the pre-registered rule, with %d participants",
+        "recruited for look 1. &alpha; = %s is spent at look 1 and the rest",
+        "at look 2 (giving &alpha; = .05 overall). *n* refers to the Naive",
+        "analysis set sample size and is reported as cumulative at look 2,",
+        "calibrated for %s overall power under the *Worst* scenario; the",
+        "*p*-value threshold at look 2 refers to a test of all participants of",
+        "the Naive set. Recruitment for look 2 assumes the retention of look 1.",
+        "Computed by `{rpact}` with *t*-based power."
+      ),
+      recruit1,
+      sub("0.", ".", round(alpha1, 3), fixed = TRUE),
+      overall_power
+    )))
+}
+
+
+#' The top-up that the pre-registered rule yields at a range of retention rates
+#'
+#' Applies the rule to each retention rate: look 1 analyses the participants of
+#' the first recruitment who reach the Naive set (or recruitment continues until
+#' `n1_min` do), and look 2 brings the Naive set to the smallest sample that
+#' gives the design the target overall power under `d`. The extra recruitment
+#' assumes the same retention as look 1.
+#'
+#' @param retention Numeric. The retention rates to illustrate, e.g. `0.50`.
+#' @param recruit1 Numeric(1). Participants recruited for look 1.
+#' @param n1_min Numeric(1). The smallest Naive set analysed at look 1.
+#' @param alpha Numeric(1). The overall one-sided significance level.
+#' @param alpha1 Numeric(1). The alpha spent at look 1.
+#' @param d Numeric(1). The true effect size look 2 is sized for.
+#' @param power Numeric(1). The target overall power under `d`.
+#' @param scenarios Named numeric. The effect sizes whose look-1 power is
+#'   reported, named by scenario.
+#'
+#' @returns A tibble with one row per retention rate: `retention`, `n1`, `n2`,
+#'   the critical values `z1` and `z2`, the nominal one-sided significance
+#'   levels `p1` and `p2`, the participants recruited for look 1
+#'   (`recruit_look1`), for look 2 (`recruit_extra`) and in total
+#'   (`recruit_total`), and the look-1 power under each scenario
+#'   (`look1_<scenario>`).
+topup_by_retention <- function(
+    retention,
+    recruit1,
+    n1_min,
+    alpha,
+    alpha1,
+    d,
+    power,
+    scenarios
+) {
+  purrr::map_dfr(retention, function(r) {
+    n1 <- max(n1_min, floor(recruit1 * r))
+    recruit1_actual <- max(recruit1, ceiling(n1 / r))
+    n2 <- size_topup(n1, alpha, "fixed", alpha1, d = d, power = power)
+    design <- design_topup(n1, n2, alpha, "fixed", alpha1)
+    look1 <- purrr::map_dbl(scenarios, \(x) power_topup(design, n2, x)[["look1"]])
+    extra <- ceiling((n2 - n1) / r)
+
+    tibble::tibble(
+      retention     = r,
+      n1            = n1,
+      n2            = n2,
+      z1            = design$criticalValues[1L],
+      z2            = design$criticalValues[2L],
+      p1            = design$stageLevels[1L],
+      p2            = design$stageLevels[2L],
+      recruit_look1 = recruit1_actual,
+      recruit_extra = extra,
+      recruit_total = recruit1_actual + extra,
+      !!!purrr::set_names(as.list(look1), paste0("look1_", names(look1)))
+    )
+  })
+}

@@ -427,9 +427,9 @@ sample size is computed here falls close to the effect size implied by
 The values in the table above are used by the power analysis to anchor sample
 size estimation. Specifically, the *Realistic* scenario *d*~z~ = `r d_real`
 serves as the basis for the sample size requirement for detecting the primary
-endpoint, i.e., BI~2~ calculated from the first test block. At the necessary sample
-size estimated this way, statistical power of the *Best* scenario *d*~z~ =
-`r d_best` and of the expected BI~3~ effect (*d*~z~ &approx; `r bi3_range`) is
+endpoint, i.e., BI~2~ calculated from the first test block. At the necessary
+sample size estimated this way, statistical power of the *Best* scenario *d*~z~
+= `r d_best` and of the expected BI~3~ effect (*d*~z~ &approx; `r bi3_range`) is
 evaluated for informative purposes. Finally, the *Worst* *d*~z~ = `r d_worst`
 scenario serves to set the rules for group-sequential top-up sampling if the
 primary endpoint fails to be detected at the first look when estimated from a
@@ -458,7 +458,8 @@ as the primary set for `fba-allergy-online-02` analysis.
 This section computes the number of participants needed to detect blocking under
 each of the scenarios derived above with 80%, 90% and 95% power, and the number
 to recruit at the assumed 50% retention. All sample sizes refer to a single,
-fixed-sample analysis, without optional stopping.
+fixed-sample analysis, without optional stopping; the group-sequential top-up
+follows below.
 
 ## Sample size
 
@@ -613,13 +614,13 @@ fig_power_curve(
 ## Power of the alternative index
 
 The alternative index, i.e., BI~3~ computed over all six test blocks, is not
-used to decide about the sample size of the study. However, if blocking is
-detected in BI~3~, it becomes the blocking index of choice for
-`fba-allergy-online-03`, and consequently the power to detect BI~3~-based
-blocking at the selected sample size still matters. Assuming BI~3~’s true effect
-size equals one of the feasibility study’s point estimates, the table below
-shows the power of the one-sided *t*-test at the sample sizes under which the
-BI~2~-based test achieves 80%, 90% and 95% power under the *Realistic* scenario.
+used to set the sample size of the study. However, if blocking is detected in
+BI~3~, it becomes the blocking index of choice for `fba-allergy-online-03`, and
+consequently the power to detect BI~3~-based blocking at the selected sample
+size still matters. Assuming BI~3~'s true effect size equals one of the
+feasibility study’s point estimates, the table below shows the power of the
+one-sided *t*-test at the sample sizes under which the BI~2~-based test achieves
+80%, 90% and 95% power under the *Realistic* scenario.
 
 ::: {.callout-note collapse="true" title="R code: Power of the alternative index"}
 ```{r}
@@ -656,5 +657,158 @@ bi3_power <-
 tbl_bi3_power(bi3_power, alpha_test)
 ```
 
+## Group-sequential top-up
+
+If the replication fails to detect blocking with either index, it continues
+with a pre-registered top-up of the sample, i.e., a second look at the data
+after additional data collection. This makes the study a group-sequential design
+[@wassmer2025], in which the rule that sets sample sizes at each look and the
+share of significance level &alpha; each look may spend are fixed in advance,
+before the first participant is recruited.
+
+::: {.callout-note collapse="true" title="R code: Group-sequential design"}
+```{r}
+#| label: replication-pwr-topup
+# Look 1 = the replication proper: recruitment of the number calibrated for
+# 95% power under the Realistic scenario at the assumed retention, analysed once
+# data collection closes, provided the Naive set holds at least the number sized
+# for 90% power
+n1_recruit <- pick_size(sizes, "realistic", 0.95, "recruit")
+n1_min <- pick_size(sizes, "realistic", 0.90)
+n1_planned <- pick_size(sizes, "realistic", 0.95)
+
+# Look 2 = the top-up, sized for 80% overall power under the Worst scenario
+power_topup_target <- 0.80
+
+# Most of alpha is spent at look 1, the replication proper, so that it keeps
+# nearly the power of a single test; look 2 gets the rest
+alpha1 <- 0.045
+
+# The rule applied at a range of retention rates, to illustrate how the
+# thresholds and the top-up follow the retention look 1 actually achieves
+by_retention <- topup_by_retention(
+  retention = c(0.40, 0.50, 0.60, 0.75),
+  recruit1 = n1_recruit,
+  n1_min = n1_min,
+  alpha = alpha_test,
+  alpha1 = alpha1,
+  d = d_worst,
+  power = power_topup_target,
+  scenarios = scenarios[c("realistic", "worst")]
+)
+
+# The design at the assumed retention
+planned <- by_retention[abs(by_retention$retention - retention_assumed) < 1e-9, ]
+stopifnot(nrow(planned) == 1L, planned$n1 == n1_planned)
+
+# Testing twice at alpha = .05 instead would inflate the false-positive rate
+alpha_naive_two_looks <- alpha_two_looks(n1_planned, planned$n2, alpha_test)
+
+# BI3 is tested at the same looks against the same boundaries
+design_planned <- design_topup(n1_planned, planned$n2, alpha_test, "fixed", alpha1)
+bi3_topup <- purrr::map(
+  round(d_bi3, 2),
+  \(d) power_topup(design_planned, planned$n2, d)
+)
+```
+:::
+
+**Look 1** is the replication proper. Recruitment closes at `r n1_recruit`
+participants, the sample size calibrated for 95% power under the *Realistic*
+scenario at the assumed 50% retention. The data are analysed as soon as the
+collection is finished, provided the Naive set contains at least `r n1_min`
+participants (ensuring 90% power under the *Realistic* scenario). If fewer than
+`r n1_min` participants reach the Naive set, recruitment continues in batches
+until the minimal required sample size is reached.
+
+**Look 2** happens only if both BI~2~ and BI~3~ analyses fail to detect blocking
+at look 1 (see the decision tree below). It is calibrated for 80% overall power
+under the *Worst* scenario (*d*~z~ = `r d_worst`). Since testing BI~2~ with the
+*p* < .05 threshold at both looks would raise the false-positive rate to about
+`r sprintf("%.0f%%", 100 * alpha_naive_two_looks)`, the significance level
+&alpha; is split between the looks. As look 1 is the replication proper and,
+given the prior literature, has good reason to detect blocking as is, I spend
+almost all of &alpha; there, fixing &alpha; =
+`r sub("^0", "", sprintf("%.3f", alpha1))` at look 1, independently of its
+actual sample size. The remaining &alpha; is spent at look 2.
+
+This sequential testing strategy ensures that look 1 keeps nearly the full power
+of a single test computed in the previous section, i.e.,
+`r print_power(planned$look1_realistic)` under the *Realistic* scenario with
+`r n1_planned` participants. As a consequence, look 2 needs a large sample size
+to achieve the desired 80% overall power[^3].
+
+[^3]: Note that the calculations assume up 90% to 95% power under the
+*Realistic* scenario at look 1. However, if this test fails to detect blocking,
+I shift the assumptions to the *Worst* scenario, under which look 1's power is
+`r planned$look1_worst` at best, and top up the sample under this scenario to
+achieve 80% power overall, across both looks. In other words, look 1 is
+calibrated for high power under the *Realistic* scenario, whereas look 2 is
+calibrated for acceptable power under the *Worst* scenario with a
+group-sequential top-up.
+
+In practice, $\mathbb{E}(BI_2)$ is significantly greater than zero at look 1
+if its one-sided *p* < `r sub("^0", "", sprintf("%.3f", alpha1))`, and at look 2
+if the one-sided *p* of all participants of the Naive set falls below a nominal
+level of about `r sub("^0", "", sprintf("%.3f", planned$p2))` (see the table
+below). Its exact value depends on the sample sizes actually reached at look 1
+and is computed once they are known, here and below with the `{rpact}` package
+[@wassmer2026].
+
+**In summary, I fix the significance level at look 1 to *p* <
+`r sub("^0", "", sprintf("%.3f", alpha1))`, allowing the power to vary within
+acceptable bounds assuming the *Realistic* scenario, but I fix the overall power
+under the *Worst* scenario at 80%, allowing the significance threshold to
+vary depending on the observed retention rate.**
+
+```{r}
+#| label: tbl-replication-pwr-topup-thresholds
+#| tbl-cap: "Illustration of the pre-registered top-up rule applied at four retention rates."
+tbl_topup_thresholds(by_retention, n1_recruit, power_topup_target)
+```
+
+::: {.callout-warning title="Rules of the top-up for pre-registration"}
+- **The rule, not the number, is pre-registered.** Look 2 calibrates the Naive
+  analysis set to the smallest sample that yields 80% overall power under the
+  *Worst* scenario, given &alpha; = `r sub("^0", "", sprintf("%.3f", alpha1))`
+  at look 1 and the look-1 sample size reached.
+- **Only outcome-blind quantities enter the rule**, i.e., the look-1 sample and
+  the retention. The look-1 estimate of blocking is not considered when
+  computing look 2 sample size requirements.
+- **The critical values are recomputed** for the sample sizes actually reached
+  at each look, keeping &alpha; = `r sub("^0", "", sprintf("%.3f", alpha1))` at
+  look 1 and an overall &alpha; = `r sub("^0", "", format(alpha_test))`.
+- **Look 2 is skipped when BI~2~ analysis detects blocking at look 1**, in which
+  case replication is declared successful and  *d*~z~ estimated with its 95% CI
+  computed for the ensuing extension study (which, unlike the replication, tests
+  against a two-sided alternative hypothesis).
+- **The interim analysis at look 1 is the only planned look at BI~2~** before
+  look 2. Attrition, completion time and the yield of the learning check may be
+  monitored throughout.
+- **After look 2, the effect size is reported as the median-unbiased
+  estimate** with its confidence interval under the stage-wise ordering. Both
+  correct the bias that a naive estimate carries after a sequential design.
+- **BI~3~ is tested in parallel at both looks against the same boundaries.**
+  At look 1, BI~3~ reaches `r print_power(bi3_topup$full[["look1"]])` power if
+  its true effect equals the Full sample estimate and
+  `r print_power(bi3_topup$learned[["look1"]])` if it equals the Learned set
+  estimate.
+- **Look 2 is skipped when BI~3~ analysis detects blocking at look 1, even if
+  BI~2~ fails to do so.** This is the only rule that stops the study without
+  rejecting the null hypothesis for BI~2~, so it cannot raise its false-positive
+  rate.
+:::
+
+::: {.callout-warning title="Practical caps on the sample size"}
+- **A cap on look 2.** If the look 2 rule asks for more participants than the
+  LABELS pool can supply in one semester, a cap will be fixed at the number of
+  participants available, reporting the power it achieves.
+- **Look 1 below its minimum.** If fewer than the `r n1_min` minimum
+  participants reach the Naive set during look-1 data collection, the sampling
+  will continue in smaller batches, aiming at recruiting the additional
+  participants necessary to reach the `r n1_planned` planned Naive set
+  participants given the retention rate observed until then. This process
+  continues until at least `r n1_min` participants reach the Naive set.
+:::
 
 # References
