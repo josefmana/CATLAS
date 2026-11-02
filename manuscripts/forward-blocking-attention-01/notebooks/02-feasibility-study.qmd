@@ -76,7 +76,7 @@ fba_screened   <- read_private_rds("fba-allergy-online-01-screened.rds")    # Pr
 fba_naive      <- read_private_rds("fba-allergy-online-01-naive.rds")       # Naive set
 
 # The naive bundle's provenance records all five exclusion rules, the last of
-# which defines the naive set
+# which defines the Naive set
 prov <- provenance(fba_naive)
 
 # Recruitment channel of each JATOS batch
@@ -135,9 +135,9 @@ below).
 I took part in the feasibility study myself, all while knowing the design and
 its hypotheses. I answered `"yes"` to the debriefing question on prior knowledge
 of similar experiments, as did `r print_num_word(n_prior_others, TRUE)` other
-participant`r if (n_prior_others == 1L) "" else "s"` of the full sample.
+participant`r if (n_prior_others == 1L) "" else "s"` of the Full sample.
 Participants with prior knowledge stay in the primary analysis of the
-feasibility study and are left out of the naive set, one of the sensitivity
+feasibility study and are left out of the Naive set, one of the sensitivity
 analyses (see [Analysis sets](#sec-analysis-sets)).
 :::
 
@@ -223,7 +223,7 @@ test_timeouts <- sum(
 
 ```{r}
 #| label: tbl-feasibility-funnel
-#| tbl-cap: "Participants remaining after application of each exclusion rule, stratified by recruitment channel. Rules are applied in the order listed and a participant is counted under the first rule that removes them. The primary set is what remains before the last rule, which defines the naive set."
+#| tbl-cap: "Participants remaining after application of each exclusion rule, stratified by recruitment channel. Rules are applied in the order listed and a participant is counted under the first rule that removes them. The primary set is what remains before the last rule, which defines the Naive set."
 tbl_funnel(funnel, levels(channels$channel))
 ```
 
@@ -247,7 +247,7 @@ did not reach the experimental trials, both *LABELS* participants excluded for
 the same reason have a non-negligible amount of experimental data. Upon closer
 examination of the data and jsPsych code, I found out that the code of the
 `fba-allergy-online-01` release sends data trial-by-trial, but does not upload
-the full data set again after the experiment has finished, despite having it
+the Full data set again after the experiment has finished, despite having it
 saved locally. At the same time, the experiment code is preloaded on the
 participant's computer.
 
@@ -264,13 +264,13 @@ To prevent this issue, the experimental code **is going to be patched soon.**
 
 ```{r}
 #| label: tbl-feasibility-sample
-#| tbl-cap: "Summary characteristics of the full sample (complete runs) and of the primary analysis set (after the learning-based exclusion)."
+#| tbl-cap: "Summary characteristics of the Full sample (complete runs) and of the primary analysis set (after the learning-based exclusion)."
 tbl_sample(fba_structural, fba_screened)
 ```
 
 ## Time on task
 
-Out of the `r print_num_word(length(duration), TRUE)` finished runs of the full
+Out of the `r print_num_word(length(duration), TRUE)` finished runs of the Full
 sample, the median time to completion was `r print_min(median(duration))`
 minutes from start to end (interquartile range
 `r print_min(quantile(duration, .25))`&ndash;`r print_min(quantile(duration, .75))`,
@@ -291,7 +291,7 @@ trial`r if (test_timeouts == 1) "" else "s"` timed out.
 
 ```{r}
 #| label: fig-feasibility-time
-#| fig-cap: "Time on task in the full sample. *Whole run* refers to the wall-clock duration JATOS recorded (available for finished runs only), the other boxes sum response times only, over the whole experiment and per stage. Each point is a participant, with orange points denoting participants excluded for failing the learning check. Boxes show the median and interquartile range."
+#| fig-cap: "Time on task in the Full sample. *Whole run* refers to the wall-clock duration JATOS recorded (available for finished runs only), the other boxes sum response times only, over the whole experiment and per stage. Each point is a participant, with orange points denoting participants excluded for failing the learning check. Boxes show the median and interquartile range."
 #| fig-width: 8
 #| fig-height: 4
 fig_time(times, stage_labels)
@@ -354,7 +354,7 @@ sensitivity <- screen_alphas(
 ### Learning curves
 
 The figures below show the learning curves of the primary analysis set (after
-exclusion based on learning, top) and the full sample (including participants
+exclusion based on learning, top) and the Full sample (including participants
 whose data did not differ sufficiently from guessing, bottom). To decide whether
 each participant learned, I tested, for every participant and stage, whether the
 number of correct responses exceeded what guessing would plausibly produce, with
@@ -375,7 +375,7 @@ Stage 3 (see the *Individual learning curves* block below).
 
 ```{r}
 #| label: fig-feasibility-learning-primary
-#| fig-cap: "Learning curves of the primary data set. The curves show mean accuracy per block, with error bars of one between-participant standard error each way. In Stages 1 and 2, orange marks the blocking cues and blue the control cues; in Stage 3, pink marks the critical compounds (of one previously blocked and one control cue) and green the filler compounds. The dashed line marks chance."
+#| fig-cap: "Learning curves of the Learned (primary) data set. The curves show mean accuracy per block, with error bars of one between-participant standard error each way. In Stages 1 and 2, orange marks the blocking cues and blue the control cues; in Stage 3, pink marks the critical compounds (of one previously blocked and one control cue) and green the filler compounds. The dashed line marks chance."
 #| fig-width: 8
 #| fig-height: 3.5
 fig_learning(fba_screened)
@@ -383,7 +383,7 @@ fig_learning(fba_screened)
 
 ```{r}
 #| label: fig-feasibility-learning-complete
-#| fig-cap: "Learning curves of the full sample. The curves show mean accuracy per block, with error bars of one between-participant standard error each way. In Stages 1 and 2, orange marks the blocking cues and blue the control cues; in Stage 3, pink marks the critical compounds (of one previously blocked and one control cue) and green the filler compounds. The dashed line marks chance."
+#| fig-cap: "Learning curves of the Full sample. The curves show mean accuracy per block, with error bars of one between-participant standard error each way. In Stages 1 and 2, orange marks the blocking cues and blue the control cues; in Stage 3, pink marks the critical compounds (of one previously blocked and one control cue) and green the filler compounds. The dashed line marks chance."
 #| fig-width: 8
 #| fig-height: 3.5
 fig_learning(fba_structural)
@@ -392,7 +392,7 @@ fig_learning(fba_structural)
 ::: {.callout-tip collapse="true" title="Individual learning curves"}
 ```{r}
 #| label: fig-feasibility-learning-participants
-#| fig-cap: "Learning curves of every participant of the full sample. Participants (rows) excluded based on the learning check are drawn in greys, with dark for blocking cues and critical compounds, light for control cues and fillers. Other colours as in the previous figures."
+#| fig-cap: "Learning curves of every participant of the Full sample. Participants (rows) excluded based on the learning check are drawn in greys, with dark for blocking cues and critical compounds, light for control cues and fillers. Other colours as in the previous figures."
 #| fig-width: 8
 #| fig-height: !expr 1.1 * length(ids_structural) + 0.8
 fig_learning_participants(scores_full, ids_learning)
@@ -401,7 +401,7 @@ fig_learning_participants(scores_full, ids_learning)
 
 ### Exclusions
 
-Of the `r print_num_word(nrow(screen_full), TRUE)` participants of the full
+Of the `r print_num_word(nrow(screen_full), TRUE)` participants of the Full
 sample, `r print_num_word(nrow(excluded))` failed the learning check in at least
 one stage and `r if (nrow(excluded) == 1L) "was" else "were"` thus excluded
 (see the top table below for stage-by-stage counts). Stage 3, the stage with the
@@ -411,7 +411,7 @@ fewest trials and the last one before the test, was failed by
 
 ```{r}
 #| label: tbl-feasibility-stage-tests
-#| tbl-cap: "Number of participants of the full sample whose accuracy was significantly above chance, per learning stage."
+#| tbl-cap: "Number of participants of the Full sample whose accuracy was significantly above chance, per learning stage."
 tbl_stage_tests(stage_tests, k_stage, n_stage, stage_labels)
 ```
 
@@ -434,23 +434,23 @@ respectively, which is close to the 60% criterion of @lepelley2005.
 
 ```{r}
 #| label: tbl-feasibility-alpha
-#| tbl-cap: "Cut-offs (correct responses out of all trials) and participant counts of the full sample included in the primary data set by the learning-based exclusion rule at different levels of $\\alpha$."
+#| tbl-cap: "Cut-offs (correct responses out of all trials) and participant counts of the Full sample included in the Learned (primary) data set by the learning-based exclusion rule at different levels of $\\alpha$."
 tbl_alpha(sensitivity, alpha_employed)
 ```
 
 ## Analysis sets {#sec-analysis-sets}
 
-The *primary set* directly answers the research question, i.e., how much
-blocking people show on average in the three-stage modified allergist task,
+The *Learned (primary) set* directly answers the research question, i.e., how
+much blocking people show on average in the three-stage modified allergist task,
 given that they learned the contingencies of the learning stages.
 
-The *full sample* serves as a sensitivity-to-learning analysis, indicating how
+The *Full sample* serves as a sensitivity-to-learning analysis, indicating how
 much the learning-based exclusion changes the estimates.
 
-Finally, the *naive set* removes from the primary set the participants who
+Finally, the *Naive set* removes from the primary set the participants who
 reported prior knowledge of a similar experiment, such as yours truly, to
 eliminate possible conformity with expected results. In
-`fba-allergy-online-02`, the naive set becomes the primary set.
+`fba-allergy-online-02`, the Naive set becomes the primary set.
 
 ```{r}
 #| label: tbl-feasibility-analysis-sets
@@ -480,7 +480,7 @@ None of the three published studies closest to this design statistically tested
 learning against chance. @beesley2011 and @lepelley2007 did not report any
 learning exclusion criterion, while @griffiths2009 excluded only participants at
 or below 50% correct over the final five blocks of any stage. I thus retain the
-full sample for sensitivity analysis.
+Full sample for sensitivity analysis.
 
 Importantly, the learning-check rule is decided from learning-stage data only,
 without any test-stage response entering it. Consequntly, despite being
@@ -505,8 +505,8 @@ tested one-sided against the null hypothesis of no blocking, because the
 direction of the effect is predicted by prior research.
 
 The primary set serves to inform the main analysis of the ensuing
-`fba-allergy-online-02` large-scale replication study, while the full sample
-(without the learning-based exclusions) and the naive set
+`fba-allergy-online-02` large-scale replication study, while the Full sample
+(without the learning-based exclusions) and the Naive set
 are there to investigate how the sample affects results under pre-specified
 "forking paths." The stability of both indices across the test stage is later
 modelled from their trial-level source data
@@ -515,7 +515,7 @@ modelled from their trial-level source data
 ::: {.callout-note collapse="true" title="R code: Blocking calculations"}
 ```{r}
 #| label: feasibility-blocking-indices
-# Test-stage scores of the full sample. Every analysis set can be derived as a
+# Test-stage scores of the Full sample. Every analysis set can be derived as a
 # subset of its participants
 blocking_scores <- score_blocking(
   fba_structural,
@@ -568,7 +568,7 @@ estimates <-
       (index == "bi_choice" & blocks != "1")
   )
 
-# The estimates quoted in the text: primary set first, full sample second
+# The estimates quoted in the text: primary set first, Full sample second
 bi2_prim <- filter(estimates, set == names(sets)[2], index == "bi_confidence")
 bi2_full <- filter(estimates, set == names(sets)[1], index == "bi_confidence")
 bi2_naive <- filter(estimates, set == names(sets)[3], index == "bi_confidence")
@@ -587,7 +587,7 @@ timeout_text <- if (n_incomplete_first == 0L) {
 } else {
   sprintf(
     paste(
-      "%s participant%s of the full sample let at least one trial of the first",
+      "%s participant%s of the Full sample let at least one trial of the first",
       "test block time out and their BI~2~ averages over the answered trials."
     ),
     stringr::str_to_sentence(print_num_word(n_incomplete_first)),
@@ -618,9 +618,9 @@ The results are summarised in the table below. In all three analysis sets, the
 data provided only weak evidence against the directional null hypothesis of no
 blocking:
 
-- **full sample:** `r print_test(bi2_full)`,
-- **learned (primary) set:** `r print_test(bi2_prim)`,
-- **naive set:** `r print_test(bi2_naive)`.
+- **Full sample:** `r print_test(bi2_full)`,
+- **Learned (primary) set:** `r print_test(bi2_prim)`,
+- **Naive set:** `r print_test(bi2_naive)`.
 
 By comparison, @beesley2011 reported a mean of 2.03 (*N* = 26, *t*(25) = 2.74),
 i.e., *d*~z~ of about 0.54, which is noticeably larger than the present
@@ -643,9 +643,9 @@ eight-trial test block design as used here, BI~3~ ranges from &minus;4 to 4 with
 higher values indicating more blocking. The results, summarised in the table
 below, were as follows:
 
-- **full sample:** `r print_test(bi3_full)`,
-- **learned (primary) set:** `r print_test(bi3_prim)`,
-- **naive set:** `r print_test(bi3_naive)`.
+- **Full sample:** `r print_test(bi3_full)`,
+- **Learned (primary) set:** `r print_test(bi3_prim)`,
+- **Naive set:** `r print_test(bi3_naive)`.
 
 [^1]: This is equivalent to the specification of @paskewitz2020, which scores
 each response by the outcome it names rather than by its consistency with
@@ -656,6 +656,45 @@ blocking.
 #| tbl-cap: "Alternative index (BI~3~ over all test blocks). Reported per analysis set, with a one-sided *t*-test against zero (no blocking) and a two-sided 90% CI of the mean and effect size *d*~z~."
 tbl_blocking(estimates, "bi_choice", unique(bi3_prim$blocks))
 ```
+
+## Correlation of the indices
+
+::: {.callout-note collapse="true" title="R code: Correlation of the indices"}
+```{r}
+#| label: feasibility-blocking-correlation
+# Per-participant original index (BI2 on the first test block) against the
+# alternative index (BI3 over all test blocks), with Pearson's r and its 95% CI
+# in each analysis set
+index_pairs <- dplyr::inner_join(
+  dplyr::select(indices_first, id, bi2 = bi_confidence),
+  dplyr::select(indices_pooled, id, bi3 = bi_choice),
+  by = "id"
+)
+
+index_cors <- purrr::map(sets, \(ids) {
+  pairs <- dplyr::filter(index_pairs, id %in% ids)
+  stats::cor.test(pairs$bi2, pairs$bi3, method = "pearson")
+})
+
+# In-text values: r and its CI without the leading zero
+index_cor_text <- purrr::map_chr(index_cors, \(test) {
+  values <- sub(
+    "^(-?)0\\.",
+    "\\1.",
+    sprintf("%.2f", c(test$estimate, test$conf.int))
+  )
+  sprintf("*r* = %s, 95%% CI [%s, %s]", values[1L], values[2L], values[3L])
+})
+```
+:::
+
+Both indices are computed from the same test stage, the original one from the
+confidence-weighted choices of the first test block, the alternative one from
+the choices of all test blocks. Per participant, they correlated as follows:
+
+- **Full sample:** `r index_cor_text[[1L]]`,
+- **Learned (primary) set:** `r index_cor_text[[2L]]`,
+- **Naive set:** `r index_cor_text[[3L]]`.
 
 ## Estimates for the power analysis
 
@@ -683,10 +722,10 @@ saveRDS(funnel, file.path(outputs, "02-feasibility-funnel.rds"))
 :::
 
 ::: {.callout-warning title="Take-aways for the pre-registration"}
-The main estimates (primary and full sample) yielded effect sizes *d*~z~ ranging
-`r es_range`. These are noticeably smaller than *d*~z~ &approx; 0.54 observed by
-@beesley2011. However, they fall within the small-to-medium range usually
-considered realistic for psychological research.
+The main estimates (Learned and Full sample sets) yielded effect sizes *d*~z~
+ranging `r es_range`. These are noticeably smaller than *d*~z~ &approx; 0.54
+observed by @beesley2011. However, they fall within the small-to-medium range
+usually considered realistic for psychological research.
 
 With as few participants as the feasibility study has, no firm conclusions can
 be made about the size of the forward-blocking effect in the three-stage
@@ -696,11 +735,11 @@ aims of the  large-scale `fba-allergy-online-02` that is to follow.
 
 ::: {.callout-important title="Effect size sensitivity to prior knowledge"}
 In the feasibility study, the effect size point estimate was cut to about half
-or less in the naive set, i.e., after participants reporting prior knowledge,
+or less in the Naive set, i.e., after participants reporting prior knowledge,
 counting yours truly, were excluded. Importantly, it remains positive. This
 estimate will serve as a "worst-case scenario" value during power analysis,
 computed to guide additional data collection if `fba-allergy-online-02` fails to
-detect blocking following a power analysis based on the primary and full sample
+detect blocking following a power analysis based on the primary and Full sample
 estimates.
 :::
 
@@ -728,13 +767,13 @@ Stability of BI~2~ and BI~3~ in in the three analysis sets is evaluated by:
 #### Average per block blocking
 
 The three figures below show how the BI~2~ and BI~3~ indices change across
-blocks in the primary set, the full sample and the naive set, respectively. All
+blocks in the primary set, the Full sample and the Naive set, respectively. All
 show weak evidence of a relatively small blocking effect, with little if any
 attenuation across the six blocks
 
 ```{r}
 #| label: fig-feasibility-blocking-blocks-primary
-#| fig-cap: "BI~2~ and BI~3~ of the **primary set** per test block and over all test blocks. Violins and grey points show the participants' indices, black points and bars show the mean and one between-participant standard error each way. The dotted line marks no blocking."
+#| fig-cap: "BI~2~ and BI~3~ of the **Learned (primary) set** per test block and over all test blocks. Violins and grey points show the participants' indices, black points and bars show the mean and one between-participant standard error each way. The dotted line marks no blocking."
 #| fig-width: 10
 #| fig-height: 8
 fig_blocking_blocks(indices_blocks, indices_pooled, sets[[2L]])
@@ -742,7 +781,7 @@ fig_blocking_blocks(indices_blocks, indices_pooled, sets[[2L]])
 
 ```{r}
 #| label: fig-feasibility-blocking-blocks-full
-#| fig-cap: "BI~2~ and BI~3~ of the **full sample** per test block and over all test blocks. Violins and grey points show the participants' indices, black points and bars show the mean and one between-participant standard error each way. The dotted line marks no blocking."
+#| fig-cap: "BI~2~ and BI~3~ of the **Full sample** per test block and over all test blocks. Violins and grey points show the participants' indices, black points and bars show the mean and one between-participant standard error each way. The dotted line marks no blocking."
 #| fig-width: 8
 #| fig-height: 6
 fig_blocking_blocks(indices_blocks, indices_pooled, sets[[1L]])
@@ -750,7 +789,7 @@ fig_blocking_blocks(indices_blocks, indices_pooled, sets[[1L]])
 
 ```{r}
 #| label: fig-feasibility-blocking-blocks-naive
-#| fig-cap: "BI~2~ and BI~3~ of the **naive set** per test block and over all test blocks. Violins and grey points show the participants' indices, black points and bars show the mean and one between-participant standard error each way. The dotted line marks no blocking."
+#| fig-cap: "BI~2~ and BI~3~ of the **Naive set** per test block and over all test blocks. Violins and grey points show the participants' indices, black points and bars show the mean and one between-participant standard error each way. The dotted line marks no blocking."
 #| fig-width: 8
 #| fig-height: 6
 fig_blocking_blocks(indices_blocks, indices_pooled, sets[[3L]])
@@ -766,7 +805,7 @@ response options but instead tend to select similar responses across blocks on
 average.
 
 Furthermore, the correlation coefficients are smaller when estimated in
-the full sample compared to the other two analysis sets. This is especially
+the Full sample compared to the other two analysis sets. This is especially
 evident for BI~3~ (see the bottom figure). If replicated in
 `fba-allergy-online-02`, this pattern would imply that the learning check is a
 valid way to ensure high reliability of a person-specific BI and support its
@@ -900,7 +939,7 @@ In the primary set, the common drift per block was
 points of signed confidence for BI~2~ and
 `r sprintf("%.2f [%.2f, %.2f]", drift_bi3$estimate, drift_bi3$ci_low, drift_bi3$ci_high)`
 on the logit scale for BI~3~, indicating similarly slow drift towards zero for
-both types of responses. On the other hand, in the full sample and the naive
+both types of responses. On the other hand, in the Full sample and the Naive
 set, only the signed confidence
 variable showed weak tendency to decline across blocks, while the choice 
 variable's common drift rate was estimated at level practically equivalent to
@@ -977,7 +1016,7 @@ starts_per_kept_low <- 1 / stats::binom.test(n_kept, n_records)$conf.int[1]
   In the LABELS batch alone, `r print_n_pct(n_kept_labels, n_rec_labels)`
   records were analysed.
 * The blocking indices analysis point to a small-to-moderate effect, which
-  roughly halved in the naive set, i.e., when participants reporting prior
+  roughly halved in the Naive set, i.e., when participants reporting prior
   knowledge were excluded, although these estimates must be interpreted
   cautiously given the small sample size.
 * Finally, the stability analysis provides some, albeit inconclusive evidence,
