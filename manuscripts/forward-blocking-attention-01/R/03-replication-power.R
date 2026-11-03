@@ -849,3 +849,187 @@ topup_by_retention <- function(
     )
   })
 }
+
+
+## ---- 3 · Decision tree ------------------------------------------------------
+
+#' Table of the decision tree
+#'
+#' @param decisions A tibble with one row per look and combination of test
+#'   results: `look` (1 or 2), `bi2` and `bi3` (`"pass"` or `"fail"`),
+#'   `replication`, `next_step` and `note`.
+#' @param thresholds Character(2). The one-sided significance thresholds of
+#'   looks 1 and 2 as printed, e.g. `c("< .045", "< .007")`.
+#'
+#' @returns A `gt` table grouped by look.
+tbl_decisions <- function(decisions, thresholds) {
+  decisions |>
+    dplyr::mutate(
+      look = sprintf(
+        "Look %d (one-sided *p* %s)",
+        look,
+        thresholds[look]
+      ),
+      next_step = dplyr::if_else(
+        is.na(note),
+        next_step,
+        paste0(next_step, "; ", note)
+      ) |>
+        stringr::str_replace_all("-03", "`fba-allergy-online-03`") |>
+        stringr::str_replace_all("BI([23])", "BI~\\1~"),
+      replication = sprintf("**%s**", replication)
+    ) |>
+    dplyr::select(
+      look,
+      bi2,
+      bi3,
+      replication,
+      next_step
+    ) |>
+    gt::gt(
+      groupname_col = "look",
+      process_md = TRUE
+    ) |>
+    gt::fmt_markdown(columns = c("replication", "next_step")) |>
+    gt::cols_label(
+      bi2         = gt::md("BI~2~"),
+      bi3         = gt::md("BI~3~"),
+      replication = "Replication",
+      next_step   = "Next step"
+    ) |>
+    gt::cols_align(
+      align   = "center",
+      columns = c("bi2", "bi3")
+    ) |>
+    gt::tab_source_note(gt::md(paste(
+      "*Pass*: the one-sided *t*-test rejects the null hypothesis of no",
+      "blocking at the threshold of the look. The replication statement is",
+      "decided by BI~2~ analysis alone, BI~3~ analysis results guide only the",
+      "decision about index to use in the extension study",
+      "`fba-allergy-online-03`."
+    )))
+}
+
+
+#' Figure of the decision tree
+#'
+#' Draws the two looks as nodes, each with one arrow per combination of test
+#' results to the decision it leads to. The combination with both indices
+#' failing at look 1 leads to look 2.
+#'
+#' @inheritParams tbl_decisions
+#' @param look_labels Character(2). The labels of the look nodes, e.g. with
+#'   their sample size and threshold.
+#'
+#' @returns A `ggplot`.
+fig_decision_tree <- function(decisions, look_labels) {
+  html <- function(x) {
+    x |>
+      stringr::str_replace_all("\n", "<br>") |>
+      stringr::str_replace_all("BI([23])", "BI<sub>\\1</sub>")
+  }
+
+  # Look 1 outcomes in a column at x = 1, look 2 in a column at x = 2, the
+  # look-2 node in the look-1 column, level with the look-2 outcomes
+  look1 <- dplyr::filter(decisions, look == 1L)
+  look2 <- dplyr::filter(decisions, look == 2L)
+  stopifnot(nrow(look1) == 4L, nrow(look2) == 4L)
+  continues <- look1$next_step == "Look 2"
+  stopifnot(sum(continues) == 1L)
+
+  y_look2 <- rev(seq_len(nrow(look2)))
+  y_look1 <- numeric(nrow(look1))
+  y_look1[continues] <- mean(y_look2)
+  y_look1[!continues] <- max(y_look2) + rev(seq_len(sum(!continues))) + 0.5
+
+  outcomes <- dplyr::bind_rows(
+    dplyr::mutate(look1, x = 1, y = y_look1),
+    dplyr::mutate(look2, x = 2, y = y_look2)
+  ) |>
+    dplyr::mutate(
+      kind = dplyr::case_when(
+        next_step == "Look 2" ~ "Look 2",
+        replication == "FAILURE" & next_step == "Change course" ~ "Change course",
+        TRUE ~ replication
+      ),
+      label = dplyr::if_else(
+        kind == "Look 2",
+        html(look_labels[2L]),
+        html(paste(replication, next_step, sep = "\n"))
+      ),
+      edge = html(sprintf("BI2 %s · BI3 %s", bi2, bi3))
+    )
+
+  # Boxes of the outcome columns are left-aligned at x, so every arrow can end
+  # the same small distance before its box
+  gap <- 0.015       # from arrow tip to the left edge of the target box
+  root_out <- 0.13   # from the Look 1 node's centre to its right edge
+  look2_out <- 0.2   # from the Look 2 node's left edge (x) to its right edge
+  
+  root <- tibble::tibble(x = 0, y = mean(y_look1), label = html(look_labels[1L]))
+  look2_node <- dplyr::filter(outcomes, kind == "Look 2")
+  
+  # Arrows from the right edge of their source box to just before their target
+  # box, and their labels on the line, 60% of the way along
+  edges <-
+    dplyr::bind_rows(
+      dplyr::filter(outcomes, look == 1L) |>
+        dplyr::mutate(xs = root$x + root_out, y0 = root$y),
+      dplyr::filter(outcomes, look == 2L) |>
+        dplyr::mutate(xs = look2_node$x + look2_out, y0 = look2_node$y)
+    ) |>
+    dplyr::mutate(
+      xe = x - gap,
+      xl = xs + 0.6 * (xe - xs),
+      yl = y0 + 0.6 * (y - y0)
+    )
+  
+  fills <- scales::alpha(
+    c(
+      "SUCCESS"       = "#009E73",
+      "FAILURE"       = "#E69F00",
+      "Look 2"        = "#999999",
+      "Change course" = "#D55E00"
+    ),
+    0.35
+  )
+
+  ggplot2::ggplot() +
+    ggplot2::geom_segment(
+      data    = edges,
+      mapping = ggplot2::aes(x = xs, y = y0, xend = xe, yend = y),
+      arrow     = ggplot2::arrow(length = ggplot2::unit(0.3, "cm"), type = "closed"),
+      linewidth = 0.6,
+      colour    = "grey40"
+      
+    ) +
+    ggtext::geom_richtext(
+      data    = edges,
+      mapping = ggplot2::aes(x = xl, y = yl, label = edge),
+      size          = 2.8,
+      fill          = "white",
+      label.colour  = NA,
+      label.padding = ggplot2::unit(rep(0.1, 4), "lines")
+    ) +
+    ggtext::geom_richtext(
+      data    = root,
+      mapping = ggplot2::aes(x = x, y = y, label = label),
+      size       = 3.2,
+      fill       = "grey90",
+      lineheight = 0.95
+    ) +
+    ggtext::geom_richtext(
+      data    = outcomes,
+      mapping = ggplot2::aes(x = x, y = y, label = label, fill = kind),
+      size       = 3,
+      lineheight = 0.95,
+      hjust      = 0
+    ) +
+    ggplot2::scale_fill_manual(
+      values = fills,
+      guide = "none"
+    ) +
+    ggplot2::scale_x_continuous(limits = c(-0.25, 2.3)) +
+    ggplot2::scale_y_continuous(expand = ggplot2::expansion(add = 0.6)) +
+    ggplot2::theme_void()
+}

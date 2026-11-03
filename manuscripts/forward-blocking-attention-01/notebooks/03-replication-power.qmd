@@ -811,4 +811,107 @@ tbl_topup_thresholds(by_retention, n1_recruit, power_topup_target)
   continues until at least `r n1_min` participants reach the Naive set.
 :::
 
+# Decision tree
+
+Based on the outcome of the two looks at the data specified above, the results
+of `fba-allergy-online-02` lead through a single, unambiguous decision tree,
+presented in the table and figure below.
+
+Its guiding principles are:
+
+* Each step is decided by a success or failure to reject the null hypothesis of
+  no blocking in favour of its directed alternative of blocking greater than
+  zero according to the decision thresholds derived by the power analysis.
+* BI~2~ analysis results decide the replication success or failure statement.
+* BI~3~ analysis results guide blocking index selection for the follow-up
+  extension study.
+* Replication statement and next study index selection are two conceptually
+  independent tasks that proceed in parallel and do not depend on each other
+  (i.e., the study may continue to the next experiment with BI~3~ as its index
+  even if the replication of the original findings fails).
+* All statements are based on the Naive analysis set results, with the Learned
+  and Full sets serving only as sensitivity analysis samples and for exploratory
+  analyses distinct from the study's primary objective.
+
+::: {.callout-warning title="Replication statement"}
+The study was calibrated to be able to detect BI~2~-based blocking in the first
+test block, thereby replicating the behavioural findings of @beesley2011.
+Whether the replication is successful or not is decided solely on the basis of
+testing $\mathbb{E}(BI_2) = 0$ against its $\mathbb{E}(BI_2) > 0$ alternative.
+The replication is declared successful as soon as BI~2~ analysis detects
+blocking, at look 1 or at look 2, and unsuccessful if BI~2~ analysis fails at
+look 1 while BI~3~ detects blocking, or if it fails at look 2.
+:::
+
+::: {.callout-tip title="The role of BI~3~"}
+The BI~3~ choice-based blocking index analysis is not part of the replication
+proper, because @beesley2011 used a single test block with BI~2~ as their sole
+measure of blocking. However, the overarching goal of the current study is not
+only to replicate but also extend the findings to allow for differentiation
+between attentional shift and attentional competition accounts of the effect.
+This extension is directly inspired by @paskewitz2020's simulation study, which
+uses BI~3~ as its outcome scale. Furthermore, existing evidence about response
+scale in blocking experiments indicates that choice-based variables may be more
+sensitive to associative processes than rating-based ones, which seem to be
+more sensitive to deliberate reasoning [@don2018].
+
+Taken together, unlike the replication study, the `fba-allergy-online-03`
+extension experiment benefits from adopting BI~3~ as its primary endpoint
+instead of BI~2~. Consequently, selection of the index for the follow-up
+extension study is based on testing $\mathbb{E}(BI_3) = 0$ against its
+$\mathbb{E}(BI_3) > 0$ alternative.
+:::
+
+::: {.callout-important title="What if no blocking is detected"}
+If neither index detects blocking at either look, the project changes course.
+Importantly, the extension will not be run next, as it would remain unclear
+whether the design can detect blocking in the online sample available. Instead,
+blocking would be sought in a different setting, e.g., a laboratory replication
+with eye tracking to reproduce more closely the setting used by @beesley2011.
+:::
+
+::: {.callout-note collapse="true" title="R code: Decision tree"}
+```{r}
+#| label: replication-pwr-decisions
+# The decisions of the replication, one row per look and combination of test
+# results; "pass" means that the one-sided test rejects no blocking at the
+# threshold of the look
+decisions <- tibble::tribble(
+  ~look, ~bi2,   ~bi3,    ~replication, ~next_step,      ~note,
+  1L,    "pass", "pass",  "SUCCESS",    "-03 with BI3",  "no top-up",
+  1L,    "pass", "fail",  "SUCCESS",    "-03 with BI2",  "no top-up",
+  1L,    "fail", "pass",  "FAILURE",    "-03 with BI3",  "no top-up",
+  1L,    "fail", "fail",  "Undecided",  "Look 2",        "top-up of the sample",
+  2L,    "pass", "pass",  "SUCCESS",    "-03 with BI3",  NA,
+  2L,    "pass", "fail",  "SUCCESS",    "-03 with BI2",  "theorise why BI2 was the more sensitive index",
+  2L,    "fail", "pass",  "FAILURE",    "-03 with BI3",  NA,
+  2L,    "fail", "fail",  "FAILURE",    "Change course", "no -03 extension"
+)
+
+# Thresholds and sample sizes of the looks at the assumed retention, as printed
+thresholds <- c(
+  paste("<", sub("^0", "", sprintf("%.3f", alpha1))),
+  paste("<", sub("^0", "", sprintf("%.3f", planned$p2)))
+)
+look_labels <- c(
+  sprintf("Look 1\nn ≥ %d\np %s", n1_min, thresholds[1L]),
+  sprintf("Look 2\nn ≈ %d\np %s", planned$n2, thresholds[2L])
+)
+```
+:::
+
+```{r}
+#| label: tbl-replication-pwr-decisions
+#| tbl-cap: "Decision tree of `fba-allergy-online-02`."
+tbl_decisions(decisions, thresholds)
+```
+
+```{r}
+#| label: fig-replication-pwr-decisions
+#| fig-cap: "Decision tree of `fba-allergy-online-02`. Each arrow is labelled with the results of the one-sided tests of the two indices at the look it leaves; -03 stands for the extension study `fba-allergy-online-03`. Sample sizes refer to the Naive set, at look 2 under the assumed 50% retention."
+#| fig-width: 9
+#| fig-height: 6
+fig_decision_tree(decisions, look_labels)
+```
+
 # References
