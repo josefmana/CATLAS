@@ -19,7 +19,7 @@ bibliography: ../../../common/references.bib
 
 > The primary goal of Experiment 1 is to replicate the associational blocking
 effect observed by @beesley2011 in a large-scale online sample, to ensure the
-effect is replicable in our laboratory environment before trying to extend the
+effect is replicable in our research setting before trying to extend the
 original findings.
 
 ::: {.callout-tip title="Goals"}
@@ -64,8 +64,8 @@ source(file.path(REPO, "common", "R", "utils-print.R"))
 source(file.path(REPO, "manuscripts", "forward-blocking-attention-01", "R", "03-replication-power.R"))
 
 # Because the replication aims to detect an effect in the predicted direction
-# at the 5% level of significance, alpha for CIs is set at 0.10, i.e., 90% CIs, which
-# align with this aim better than the typical 95% CIs.
+# at the 5% level of significance, alpha for CIs is set at 0.10, i.e., 90% CIs,
+# which align with this aim better than the typical 95% CIs.
 alpha_ci <- .10
 ```
 :::
@@ -618,7 +618,7 @@ used to set the sample size of the study. However, if blocking is detected in
 BI~3~, it becomes the blocking index of choice for `fba-allergy-online-03`, and
 consequently the power to detect BI~3~-based blocking at the selected sample
 size still matters. Assuming BI~3~'s true effect size equals one of the
-feasibility study’s point estimates, the table below shows the power of the
+feasibility study's point estimates, the table below shows the power of the
 one-sided *t*-test at the sample sizes under which the BI~2~-based test achieves
 80%, 90% and 95% power under the *Realistic* scenario.
 
@@ -663,8 +663,8 @@ If the replication fails to detect blocking with either index, it continues
 with a pre-registered top-up of the sample, i.e., a second look at the data
 after additional data collection. This makes the study a group-sequential design
 [@wassmer2025], in which the rule that sets sample sizes at each look and the
-share of significance level &alpha; each look may spend are fixed in advance,
-before the first participant is recruited.
+share of the significance level &alpha; each look may spend are fixed in
+advance, before the first participant is recruited.
 
 ::: {.callout-note collapse="true" title="R code: Group-sequential design"}
 ```{r}
@@ -738,12 +738,12 @@ of a single test computed in the previous section, i.e.,
 `r n1_planned` participants. As a consequence, look 2 needs a large sample size
 to achieve the desired 80% overall power[^3].
 
-[^3]: Note that the calculations assume up 90% to 95% power under the
-*Realistic* scenario at look 1. However, if this test fails to detect blocking,
-I shift the assumptions to the *Worst* scenario, under which look 1's power is
-`r planned$look1_worst` at best, and top up the sample under this scenario to
-achieve 80% power overall, across both looks. In other words, look 1 is
-calibrated for high power under the *Realistic* scenario, whereas look 2 is
+[^3]: Note that the calculations assume 90% to 95% power under the *Realistic*
+scenario at look 1. However, if this test fails to detect blocking, I shift the
+assumptions to the *Worst* scenario, under which look 1's power is
+`r print_power(planned$look1_worst)` at best, and top up the sample under this
+scenario to achieve 80% power overall, across both looks. In other words, look 1
+is calibrated for high power under the *Realistic* scenario, whereas look 2 is
 calibrated for acceptable power under the *Worst* scenario with a
 group-sequential top-up.
 
@@ -779,8 +779,8 @@ tbl_topup_thresholds(by_retention, n1_recruit, power_topup_target)
   at each look, keeping &alpha; = `r sub("^0", "", sprintf("%.3f", alpha1))` at
   look 1 and an overall &alpha; = `r sub("^0", "", format(alpha_test))`.
 - **Look 2 is skipped when BI~2~ analysis detects blocking at look 1**, in which
-  case replication is declared successful and  *d*~z~ estimated with its 95% CI
-  computed for the ensuing extension study (which, unlike the replication, tests
+  case replication is declared successful and *d*~z~ is estimated with its 95%
+  CI for the ensuing extension study (which, unlike the replication, tests
   against a two-sided alternative hypothesis).
 - **The interim analysis at look 1 is the only planned look at BI~2~** before
   look 2. Attrition, completion time and the yield of the learning check may be
@@ -802,7 +802,7 @@ tbl_topup_thresholds(by_retention, n1_recruit, power_topup_target)
 ::: {.callout-warning title="Practical caps on the sample size"}
 - **A cap on look 2.** If the look 2 rule asks for more participants than the
   LABELS pool can supply in one semester, a cap will be fixed at the number of
-  participants available, reporting the power it achieves.
+  participants available, and the power it achieves will be reported.
 - **Look 1 below its minimum.** If fewer than the `r n1_min` minimum
   participants reach the Naive set during look-1 data collection, the sampling
   will continue in smaller batches, aiming at recruiting the additional
