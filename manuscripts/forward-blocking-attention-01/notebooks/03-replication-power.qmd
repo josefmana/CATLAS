@@ -916,4 +916,116 @@ tbl_decisions(decisions, thresholds)
 fig_decision_tree(decisions, look_labels)
 ```
 
+::: {.callout-note collapse="true" title="R code: Export for the pre-registration"}
+```{r}
+#| label: replication-pwr-export
+# The pre-registration appendix reads the design from the manuscript's
+# `outputs/` folder, so that it registers the numbers computed here rather than
+# copies of them
+design <- list(
+  alpha_test         = alpha_test,
+  alpha1             = alpha1,
+  alpha_ci           = alpha_ci,
+  scenarios          = scenarios,
+  retention_assumed  = retention_assumed,
+  target_power       = target_power,
+  sizes              = sizes,
+  n1_recruit         = n1_recruit,
+  n1_min             = n1_min,
+  n1_planned         = n1_planned,
+  power_topup_target = power_topup_target,
+  by_retention       = by_retention,
+  planned            = planned,
+  decisions          = decisions,
+  thresholds         = thresholds
+)
+
+write_output(
+  design,
+  "03-replication-design.rds",
+  "forward-blocking-attention-01"
+)
+```
+:::
+
+# Conclusions
+
+* **Effect size.** The original study reported *d*~z~ &approx;
+  `r print_d(lit$beesley2011$d)`, while the feasibility study suggests a smaller
+  effect, *d*~z~ = `r print_d(d_bi2[["full"]])` in the Full sample and
+  `r print_d(d_bi2[["learned"]])` in the Learned set, roughly halved in the
+  Naive set (`r print_d(d_bi2[["naive"]])`). These estimates are used to define
+  the *Best*, *Realistic* and *Worst* scenarios.
+* **Look 1.** The replication recruits `r n1_recruit` participants and analyses
+  the Naive set once at least `r n1_min` participants reach it, testing BI~2~
+  at a one-sided &alpha; = `r sub("^0", "", sprintf("%.3f", alpha1))`. With the
+  planned `r n1_planned` participants, this sample size yields
+  `r print_power(planned$look1_realistic)` power under the *Realistic* scenario.
+* **Look 2.** If neither index detects blocking at look 1, the Naive set is
+  topped up to about `r planned$n2` participants at the assumed retention of 50%
+  (about `r planned$recruit_total` recruited in total), tested at a nominal
+  one-sided *p* < `r sub("^0", "", sprintf("%.3f", planned$p2))`, for 80%
+  overall power under the *Worst* scenario.
+* **The alternative index.** BI~3~ is tested alongside BI~2~ using the same
+  thresholds. At look 1, it reaches `r print_power(bi3_topup$full[["look1"]])`
+  power if its true effect equals the Full sample estimate and
+  `r print_power(bi3_topup$learned[["look1"]])` if it equals the Learned set
+  estimate.
+* **Decisions.** BI~2~ alone decides whether @beesley2011's blocking is
+  replicated; BI~3~ decides which index will be used by `fba-allergy-online-03`
+  extension study.
+
+::: {.callout-warning title="Implications for the pre-registration"}
+The pre-registration of `fba-allergy-online-02` registers the hypotheses
+(blocking in BI~2~ and in BI~3~ in the Naive set), the look-1 sampling rule,
+the split of &alpha; between the looks, the rule that sets the look-2 sample
+from the retention look 1 achieves, and the decision tree. The cap on look 2
+remains to be fixed once the size of the LABELS pool is known.
+:::
+
+# Software
+
+::: {.callout-note collapse="true" title="Functions used in this notebook"}
+The tables, figures and helpers of this notebook are functions, sourced at its
+start from `common/R/utils-print.R`, `common/R/utils-outputs.R` and
+`common/R/utils-stats.R` (shared by all manuscripts), and
+`manuscripts/forward-blocking-attention-01/R/03-replication-power.R`. Their
+code is shown here.
+
+```{r}
+#| label: replication-pwr-code-utils-print
+#| file: !expr file.path(REPO, "common", "R", "utils-print.R")
+#| echo: true
+#| eval: false
+```
+
+```{r}
+#| label: replication-pwr-code-utils-outputs
+#| file: !expr file.path(REPO, "common", "R", "utils-outputs.R")
+#| echo: true
+#| eval: false
+```
+
+```{r}
+#| label: replication-pwr-code-utils-stats
+#| file: !expr file.path(REPO, "common", "R", "utils-stats.R")
+#| echo: true
+#| eval: false
+```
+
+```{r}
+#| label: replication-pwr-code-replication
+#| file: !expr file.path(REPO, "manuscripts", "forward-blocking-attention-01", "R", "03-replication-power.R")
+#| echo: true
+#| eval: false
+```
+:::
+
+::: {.callout-note collapse="true" title="Session info"}
+```{r}
+#| label: replication-pwr-session-info
+sessioninfo::session_info()
+```
+:::
+
 # References
