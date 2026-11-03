@@ -57,8 +57,10 @@ suppressPackageStartupMessages({
 # code remains renderable no matter where it is called from
 REPO <- rprojroot::find_root(rprojroot::has_file("CATLAS.Rproj"))
 
-# Formatting helpers shared by all manuscripts
+# Formatting, output and effect-size helpers shared by all manuscripts
 source(file.path(REPO, "common", "R", "utils-print.R"))
+source(file.path(REPO, "common", "R", "utils-outputs.R"))
+source(file.path(REPO, "common", "R", "utils-stats.R"))
 
 # Tables and helpers of this notebook
 source(file.path(REPO, "manuscripts", "forward-blocking-attention-01", "R", "03-replication-power.R"))
@@ -229,8 +231,8 @@ replication study.
 ```{r}
 #| label: replication-pwr-feasibility
 # Pilot estimates and attrition funnel, saved by `02-feasibility-study.qmd`
-estimates <- read_output("02-feasibility-estimates.rds", REPO)
-funnel <- read_output("02-feasibility-funnel.rds", REPO)
+estimates <- read_output("02-feasibility-estimates.rds", "forward-blocking-attention-01")
+funnel <- read_output("02-feasibility-funnel.rds", "forward-blocking-attention-01")
 
 # The original index (BI2 on test block 1) and the alternative index (BI3 over
 # all test blocks) in each of the three analysis sets, tested one-sided with

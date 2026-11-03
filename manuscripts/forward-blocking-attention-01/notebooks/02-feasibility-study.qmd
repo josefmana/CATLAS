@@ -34,9 +34,12 @@ suppressPackageStartupMessages({
 # matter where it is called from
 REPO <- rprojroot::find_root(rprojroot::has_file("CATLAS.Rproj"))
 
-# Formatting helpers shared by all manuscripts, and the
-# tables and figures of this notebook (listed at the end, in "Functions used in this notebook")
+# Formatting, output and effect-size helpers shared by all manuscripts, and the
+# tables and figures of this notebook (listed at the end, in "Functions used in
+# this notebook")
 source(file.path(REPO, "common", "R", "utils-print.R"))
+source(file.path(REPO, "common", "R", "utils-outputs.R"))
+source(file.path(REPO, "common", "R", "utils-stats.R"))
 source(file.path(REPO, "manuscripts", "forward-blocking-attention-01", "R", "02-feasibility-study.R"))
 ```
 :::
@@ -714,10 +717,8 @@ tbl_power(estimates)
 # The power analysis notebook (`03-replication-power.qmd`) reads the pilot
 # estimates and the attrition funnel from the manuscript's `outputs/` folder,
 # which git ignores. Both are aggregates and contain no participant identifiers.
-outputs <- file.path(REPO, "manuscripts", "forward-blocking-attention-01", "outputs")
-dir.create(outputs, showWarnings = FALSE)
-saveRDS(estimates, file.path(outputs, "02-feasibility-estimates.rds"))
-saveRDS(funnel, file.path(outputs, "02-feasibility-funnel.rds"))
+write_output(estimates, "02-feasibility-estimates.rds", "forward-blocking-attention-01")
+write_output(funnel, "02-feasibility-funnel.rds", "forward-blocking-attention-01")
 ```
 :::
 
@@ -1048,14 +1049,29 @@ choice-based response data.
 # Software
 
 ::: {.callout-note collapse="true" title="Functions used in this notebook"}
-The tables, figures and formatting helpers of this notebook are functions,
-sourced at its start from `common/R/utils-print.R` (shared by all manuscripts)
-and `manuscripts/forward-blocking-attention-01/R/02-feasibility-study.R`. Their
-code is shown here, not run again.
+The tables, figures and helpers of this notebook are functions, sourced at its
+start from `common/R/utils-print.R`, `common/R/utils-outputs.R` and
+`common/R/utils-stats.R` (shared by all manuscripts), and
+`manuscripts/forward-blocking-attention-01/R/02-feasibility-study.R`. Their
+code is shown here.
 
 ```{r}
 #| label: code-utils-print
 #| file: !expr file.path(REPO, "common", "R", "utils-print.R")
+#| echo: true
+#| eval: false
+```
+
+```{r}
+#| label: code-utils-outputs
+#| file: !expr file.path(REPO, "common", "R", "utils-outputs.R")
+#| echo: true
+#| eval: false
+```
+
+```{r}
+#| label: code-utils-stats
+#| file: !expr file.path(REPO, "common", "R", "utils-stats.R")
 #| echo: true
 #| eval: false
 ```

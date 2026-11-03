@@ -12,36 +12,13 @@
 
 ## ---- 1.1 · Prior literature -------------------------------------------------
 
-#' Confidence interval of Cohen's d_z from an observed t-statistic
-#'
-#' Inverts the noncentral t distribution of the observed t-statistic, the same
-#' computation as `ci_d_one_sample()` in `02-feasibility-study.R`.
-#'
-#' @param t Numeric(1). The t-statistic of a one-sample or paired t-test.
-#' @param n Integer(1). The number of participants.
-#' @param level Numeric(1). Confidence level, e.g. `0.90`.
-#'
-#' @returns Numeric(2), the lower and upper bound.
-ci_dz <- function(t, n, level) {
-  tail <- (1 - level) / 2
-  root <- function(target) {
-    suppressWarnings(stats::uniroot(
-      \(ncp) stats::pt(t, n - 1L, ncp) - target,
-      interval  = c(t - 10, t + 10),
-      extendInt = "yes"
-    )$root)
-  }
-
-  c(root(1 - tail), root(tail)) / sqrt(n)
-}
-
-
 #' Standardise reported tests of blocking
 #'
 #' Converts each reported one-sample or paired test to Cohen's
 #' \eqn{d_z = t / \sqrt{n}}, i.e., the mean (difference) divided by its
 #' standard deviation. F-tests must have one numerator degree of freedom, so
-#' that \eqn{t = \sqrt{F}}.
+#' that \eqn{t = \sqrt{F}}. The CIs come from [ci_d_one_sample()]
+#' (`common/R/stats-effect-sizes.R`).
 #'
 #' @param tests A tibble with one row per reported test and columns `study`,
 #'   `test` (`"t"` or `"F"`), `statistic` and `n`.
@@ -61,7 +38,7 @@ standardise_reported_tests <- function(tests, level) {
       d  = t / sqrt(n)
     )
 
-  ci <- purrr::map2(out$t, out$n, \(t, n) ci_dz(t, n, level))
+  ci <- purrr::map2(out$t, out$n, \(t, n) ci_d_one_sample(t, n, level))
   out$d_low <- purrr::map_dbl(ci, 1L)
   out$d_high <- purrr::map_dbl(ci, 2L)
 
@@ -70,35 +47,6 @@ standardise_reported_tests <- function(tests, level) {
 
 
 ## ---- 1.2 · Feasibility estimates -------------------------------------------
-
-#' Read an output saved by another notebook of this manuscript
-#'
-#' Notebooks save the results that later notebooks need to the manuscript's
-#' `outputs/` folder (ignored by git) while they render. The file name starts
-#' with the number of the notebook that writes it.
-#'
-#' @param file Character(1). File name within `outputs/`, e.g.
-#'   `"02-feasibility-estimates.rds"`.
-#' @param repo Character(1). Path to the CATLAS repository.
-#'
-#' @returns The object stored in `file`.
-read_output <- function(file, repo) {
-  dir <- file.path(repo, "manuscripts", "forward-blocking-attention-01", "outputs")
-  path <- file.path(dir, file)
-  if (!file.exists(path)) {
-    stop(
-      sprintf(
-        "'%s' is not in %s. Render notebook %s first, which saves it.",
-        file,
-        dir,
-        sub("-.*$", "", file)
-      ),
-      call. = FALSE
-    )
-  }
-  readRDS(path)
-}
-
 
 #' Pick one value of the pilot estimates
 #'
