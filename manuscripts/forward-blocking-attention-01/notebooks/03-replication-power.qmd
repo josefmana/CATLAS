@@ -5,7 +5,7 @@ authors:
   - name: Josef Mana
     id: jm
     orcid: 0000-0002-7817-3978
-    email: mana@psu.cas.cz
+    email: josef.mana@psu.cas.cz
     affiliation:
       - name: Institute of Psychology of the Czech Academy of Sciences
         department: Cognitive Psychology
