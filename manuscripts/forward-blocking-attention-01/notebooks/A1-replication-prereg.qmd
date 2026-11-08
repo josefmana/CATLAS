@@ -1,0 +1,1170 @@
+---
+title: "Experiment 1: Large-scale Online Replication"
+subtitle: "Pre-registration"
+authors:
+  - name: Josef Mana
+    id: jm
+    orcid: 0000-0002-7817-3978
+    email: josef.mana@psu.cas.cz
+    affiliation:
+      - name: Institute of Psychology of the Czech Academy of Sciences
+        department: Cognitive Psychology
+        city: Prague
+        address: Pod Vodárenskou věží 4, Prague 18200
+        country: Czech Republic
+    roles: [conceptualization, data curation]
+    corresponding: true
+echo: false
+warnings: false
+bibliography: ../../../common/references.bib
+---
+
+> This appendix generates the pre-registration of `fba-allergy-online-02`, the
+large-scale online replication of @beesley2011, in the Psychological Research
+Preregistration-Quantitative (PRP-QUANT) Template, version 4 [@prpquant2026],
+with the `{preregr}` package.
+
+The form is structured according to the PreReg web form of the template
+(<https://apps.leibniz-psychology.org/prp-quant/>) and rebuilt for `{preregr}`.
+This notebook exports its result to the `outputs/` folder: once as a PDF and
+once as a state file of the web form (`A1-replication-prereg-zpid.rds`), which
+the web form can load via its *Import previous state* functionality, to be
+checked there and submitted to PreReg, which is the registry of the Leibniz
+Institute for Psychology (ZPID).
+
+::: {.callout-tip title="None of the numbers is typed in by hand"}
+Sample sizes, significance thresholds and the decision tree are read from the
+design that was exported by the power analysis notebook
+(`03-replication-power.qmd`) and the exclusion rules come from the provenance
+record of the pilot's `{catlasr}` data bundle. The registration thus cannot
+drift from the analyses that justify its contents.
+:::
+
+::: {.callout-warning title="To decide before submission"}
+Items still holding a **To decide** or **To add** marker are listed in the
+[completion check](#sec-prereg-completion) at the end of this notebook. They
+are:
+
+- **PD2.1** the ID of the ethics proposal of `fba-allergy-online-02`.
+:::
+
+# Specification
+
+Here, I fill the pre-registration form section by section in the collapsed
+chunks of R code below. Each item's text is written with `prereg_text()`
+function, which fills in the values of the design and joins the lines of every
+paragraph. Items marked as not applicable hold the form's not-applicable text,
+which the export turns into a ticked *NA* checkbox.
+
+::: {.callout-note collapse="true" title="R code: Set-up"}
+```{r}
+#| label: replication-prereg-envir
+# {preregr} is called with its namespace rather than attached, because
+# attaching it masks base::source()
+suppressPackageStartupMessages(library(gt))
+
+# Search files in relation to the project repository directory, so that the
+# code remains renderable no matter where it is called from
+REPO <- rprojroot::find_root(rprojroot::has_file("CATLAS.Rproj"))
+MANUSCRIPT <- "forward-blocking-attention-01"
+
+# Bibliography and citation style, for the references of R1 and the exports
+BIB <- file.path(REPO, "common", "references.bib")
+CSL <- file.path(REPO, "common", "csl", "apa.csl")
+
+# Formatting, output, effect-size and pre-registration helpers shared by all
+# manuscripts, the PRP-QUANT V4 form, and the two-look design of the power
+# analysis
+source(file.path(REPO, "common", "R", "utils-print.R"))
+source(file.path(REPO, "common", "R", "utils-outputs.R"))
+source(file.path(REPO, "common", "R", "utils-stats.R"))
+source(file.path(REPO, "common", "R", "utils-prereg.R"))
+source(file.path(REPO, "common", "R", "prereg-prpquant-v4.R"))
+source(file.path(REPO, "manuscripts", MANUSCRIPT, "R", "03-replication-power.R"))
+
+# The design exported by the power analysis notebook, and the pilot estimates
+# and attrition funnel exported by the feasibility notebook
+design <- read_output("03-replication-design.rds", MANUSCRIPT)
+estimates <- read_output("02-feasibility-estimates.rds", MANUSCRIPT)
+funnel <- read_output("02-feasibility-funnel.rds", MANUSCRIPT)
+
+# The exclusion rules, verbatim from the provenance record of the pilot's naive
+# data bundle
+rules_pilot <- catlasr::provenance(
+  catlasr::read_private_rds("fba-allergy-online-01-naive.rds")
+)$exclusions
+
+# The rules are messaged by {preregr} only when an item fails validation
+preregr::opts$set(silent = TRUE)
+
+# Items marked as not applicable hold this text
+NA_TEXT <- "Not applicable."
+
+# Start the pre-registration
+fba_allergy_online_02 <- preregr::prereg_initialize(form_prpquant_v4(NA_TEXT))
+```
+
+```{r}
+#| label: replication-prereg-values
+# Values of the design, named as in the power analysis notebook
+alpha_test <- design$alpha_test
+alpha1 <- design$alpha1
+scenarios <- design$scenarios
+sizes <- design$sizes
+n1_recruit <- design$n1_recruit
+n1_min <- design$n1_min
+n1_planned <- design$n1_planned
+planned <- design$planned
+by_retention <- design$by_retention
+retention_assumed <- design$retention_assumed
+stopifnot(
+  identical(names(scenarios), c("worst", "realistic", "best")),
+  planned$n1 == n1_planned
+)
+
+# The pilot: effect sizes by set and index, and the attrition funnel
+sets <- c(
+  full    = "1 · Full sample",
+  learned = "2 · Learned",
+  naive   = "3 · Naive"
+)
+d_bi2 <- purrr::map_dbl(sets, \(s) pick_estimate(estimates, s, "bi_confidence"))
+d_bi3 <- purrr::map_dbl(sets, \(s) pick_estimate(estimates, s, "bi_choice"))
+pilot_records <- funnel$Total[1L]
+pilot_naive <- funnel$Total[nrow(funnel)]
+labels_records <- funnel$LABELS[1L]
+labels_naive <- funnel$LABELS[nrow(funnel)]
+
+# BI3 is tested at the same looks against the same boundaries as BI2
+design_planned <- design_topup(
+  n1_planned,
+  planned$n2,
+  alpha_test,
+  "fixed",
+  alpha1
+)
+bi3_look1 <- purrr::map_dbl(
+  round(d_bi3, 2),
+  \(d) power_topup(design_planned, planned$n2, d)[["look1"]]
+)
+
+# Expected precision at look 1: the 90% CI of d_z at the planned sample, if the
+# true effect equals the Realistic scenario
+ci_realistic <- ci_d_one_sample(
+  t = scenarios[["realistic"]] * sqrt(n1_planned),
+  n = n1_planned,
+  level = 1 - design$alpha_ci
+)
+
+# The top-up rule at the four illustrated retention rates
+illustration <- with(
+  by_retention,
+  paste0(
+    sprintf("%.0f%%", 100 * retention), " retention: ",
+    n1, " at look 1, ", n2, " at look 2 (", recruit_total,
+    " recruited in total), nominal one-sided *p* < ", print_alpha(p2, 4L)
+  )
+)
+
+# Versions of the software the registration names
+version_catlasr <- as.character(utils::packageVersion("catlasr"))
+version_rpact <- as.character(utils::packageVersion("rpact"))
+
+# The contributors, as entered in the contributor fields of the web form
+contributors <- tibble::tibble(
+  name        = "Josef Mana",
+  affiliation = "Institute of Psychology of the Czech Academy of Sciences",
+  department  = "The Department of Cognitive Psychology",
+  orcid       = "0000-0002-7817-3978",
+  role        = "Author(s) / Creator(s)"
+)
+```
+:::
+
+::: {.callout-note collapse="true" title="R code: Title page (T)"}
+```{r}
+#| label: replication-prereg-section-t
+fba_allergy_online_02 <- preregr::prereg_specify(
+  fba_allergy_online_02,
+
+  # Contributors (contributor fields of the web form)
+  contributors = write_prereg_contributors(contributors),
+
+  # Title
+  T1 = prereg_text("
+    Forward Blocking in an Online Allergist Task: A Large-Scale Replication of
+    Beesley and Le Pelley (2011)
+  "),
+
+  # Alternative title
+  T2 = NA_TEXT,
+
+  # Principal investigator and corresponding author
+  T4 = "Josef Mana, e-mail: josef.mana@psu.cas.cz, josef.mana@protonmail.com",
+
+  # Versioning information
+  T5 = "This is the first preregistration of this study."
+)
+```
+:::
+
+::: {.callout-note collapse="true" title="R code: Project documentation (PD)"}
+```{r}
+#| label: replication-prereg-section-pd
+fba_allergy_online_02 <- preregr::prereg_specify(
+  fba_allergy_online_02,
+
+  # Estimated duration
+  PD1_start = "16.11.2026",
+  PD1_end = "31.12.2028",
+
+  # Ethics
+  PD2 = "Not yet but is planned",
+  #PD2_1 = "TBA",
+
+  # Conflict of interest
+  PD3 = prereg_text(
+    "All authors declare that they have no conflicts of interest in the conduct
+    of this study."
+  ),
+
+  # Funding
+  PD4 = prereg_text(
+    "Third-party funding by public or private research funding
+    organisation/foundation"
+  ),
+  PD4_1 = "Institute of Psychology of the Czech Academy of Sciences",
+  PD4_2 = "Ministry of Education, Youth and Sports of the Czech Republic",
+  PD4_5 = "CZ.02.01.01/00/23_025/0008713",
+
+  # Software
+  PD5 = prereg_text("
+    The experiment is written in jsPsych, implemented in JATOS, distributed to
+    participants via www.mindprobe.eu. All data import, processing and analysis
+    is done in R. Manuscripts are written in Quarto accessed via RStudio.
+  "),
+
+  # Sharing levels
+  PD6_experimental_code = "as public use file",
+  PD6_analysis_code = "as public use file",
+  PD6_raw_data = "as public use file",
+  PD6_processed_data = "as public use file",
+
+  # Planned repositories
+  PD7 = prereg_text("
+    The experiment is released in the `catlaslab` repository
+    (<https://github.com/josefmana/catlaslab>) under the `fba-allergy-online-02`
+    release. The import, exclusion and scoring functions are released in the
+    `catlasr` R package (<https://github.com/josefmana/catlasr>), and the
+    analysis notebooks, including this registration and the power analysis
+    behind it, in the `CATLAS` repository
+    (<https://github.com/josefmana/CATLAS>).
+
+    All raw response data as well as by-participant browser metadata will be
+    shared under the MIT licence as a dataset of the `catlasr` R package, built
+    by a script that applies the exclusion rules of AP1 and records them in the
+    data set's provenance. Participants' age and sex are reported as aggregates
+    (means and proportions) in the manuscript but not shared publicly.
+  "),
+
+  # Other information: standard lab practices
+  PD8 = prereg_text("
+    The `catlasr` R package (version {{version_catlasr}} at registration)
+    implements the import and validation of the raw data, the recording of
+    exclusion rules in provenance, the learning check and the blocking indices,
+    which the analysis plan refers to by function name. A release of `catlasr`
+    is tagged before data collection begins and used throughout.
+  ")
+)
+```
+:::
+
+::: {.callout-note collapse="true" title="R code: Abstract (A)"}
+```{r}
+#| label: replication-prereg-section-a
+fba_allergy_online_02 <- preregr::prereg_specify(
+  fba_allergy_online_02,
+
+  # Project description
+  A1 = prereg_text("
+    **Background.** In forward blocking, a cue is learned about less when
+    presented with another cue that already predicts the outcome. In the
+    three-stage design of @beesley2011, blocked cues are also learned about
+    less when paired with new outcomes, indicating selective inattention to
+    the blocked cues.
+
+    **Objectives.** To replicate the three-stage blocking effect in a large
+    online sample and to select the blocking index for the extension study to
+    follow.
+
+    **Participants.** Students of the LABELS participant pool of Charles
+    University, tested online. Recruitment of {{n1_recruit}} participants at
+    look 1, aiming at {{n1_planned}} (at least {{n1_min}}) in the primary
+    analysis set, with a pre-registered top-up at look 2 (see M3).
+
+    **Method.** A within-participant three-stage modified allergist task.
+    Blocking is tested by one-sided one-sample *t*-tests of the original index
+    of @beesley2011 and of an alternative choice-based index, in a two-look
+    group-sequential design.
+  "),
+
+  # Keywords
+  A2 = prereg_text("
+    associative learning, cue competition, learned attention, contingency
+    learning, forward blocking, allergist task
+  "),
+
+  # Research area
+  A3 = "Cognitive psychology"
+)
+```
+:::
+
+::: {.callout-note collapse="true" title="R code: Introduction (I)"}
+```{r}
+#| label: replication-prereg-section-i
+fba_allergy_online_02 <- preregr::prereg_specify(
+  fba_allergy_online_02,
+
+  # Theoretical background
+  I1 = prereg_text("
+    Forward blocking refers to the attenuation of learning about a cue-outcome
+    relationship when the cue is accompanied by another cue that has already
+    been established to predict the same outcome [@kamin1969; @dickinson1984;
+    @shanks1985]. Although under certain experimental conditions, blocking
+    follows from error-driven learning alone [@rescorla1972], eye-tracking and
+    behavioural studies suggest that it is often accompanied by learned
+    inattention to the blocked cue [@kruschke2005; @lepelley2007; @beesley2011].
+    
+    Learned-attention models explain it either by rapid attentional shifts or by
+    attentional competition [@kruschke2001]. @paskewitz2020 proposed a design
+    that could adjudicate between these two explanations, which is yet to be
+    experimentally tested. Whereas in the canonical two-stage design, blocking
+    can be explained without any attentional mechanism [@sewell2012], in the
+    three-stage design of @lepelley2007 and @beesley2011, blocked and control
+    cues are paired with new outcomes in a third stage, in the absence of their
+    former competitors, so that a deficit in learning about the blocked cue must
+    generalise beyond its original association. This design thus requires an
+    attentional mechanism [@paskewitz2020] and forms the basis of the planned
+    extension study.
+
+    However, blocking may not as reliable as its standing in the literature
+    suggests. @maes2016 failed to detect it in fifteen replications of published
+    rodent paradigms. The extension of the three-stage design aim at in this
+    study is therefore preceded by a replication of its behavioural result in
+    the setting in which the extension will run, i.e., an online experiment. A
+    pilot study of the present procedure (`fba-allergy-online-01`, see M2) found
+    effects in the predicted direction, but was too imprecise to decide about
+    its reliability.
+  "),
+
+  # Objectives and research questions
+  I2 = prereg_text("
+    The study has two objectives:
+
+    1. To replicate the blocking effect of @beesley2011, measured by their
+    confidence-weighted index on the first test block, in a large online
+    sample of participants without prior knowledge of the paradigm.
+
+    2. To select the blocking index for the extension study
+    (`fba-allergy-online-03`), with options being the original
+    confidence-weighted index or an alternative choice-based index used by the
+    simulations of @paskewitz2020.
+
+    The study also provides effect size estimates for the power analysis of the
+    extension study.
+  "),
+
+  # Hypotheses
+  I3 = prereg_text("
+    Both hypotheses are tested in the Naive set (i.e., participants showing
+    sufficient learning who are unfamiliar with the study design, see AP1),
+    one-sided, in the direction of blocking.
+
+    - **H1** (decides the replication). The mean of BI~2~, the
+      confidence-weighted blocking index of @beesley2011 on the first test
+      block, is greater than zero.
+
+    - **H2** (decides the index of `fba-allergy-online-03`; has no bearing on
+      the replication). The mean of BI~3~, the choice-based blocking index of
+      @paskewitz2020 over all six test blocks, is greater than zero.
+
+    Both indices are defined in M12. Positive values of either index indicate
+    blocking, i.e., test choices of the outcome paired in Stage 3 with the
+    control rather than with the blocked cue.
+  "),
+
+  # Purely exploratory study
+  I3_1 = "No",
+
+  # Exploratory questions
+  I4 = prereg_text("
+    The test stage is repeated six times, compared to a single block in
+    @beesley2011, which allows asking how stable blocking is across the test
+    stage (E4) and how reliably the indices measure it (E2 and E3). Indices that
+    are robust at the group level may still rank participants unreliably [the
+    reliability paradox, @hedge2018], which lowers precision of any later
+    correlation estimates of blocking as a trait with other trait-like variables
+    (e.g., correlating a behavioural with eye-tracking blocking index by
+    @beesley2011).
+
+    - **E1.** Given the sample reached, what are the probabilities of a sign
+      error and the expected exaggeration of a significant estimate
+      [@gelman2014] under each effect size scenario of M3.2?
+
+    - **E2.** How strongly are BI~2~ and BI~3~ correlated across participants?
+
+    - **E3a.** How strongly are per-block indices correlated between test
+      blocks and does the learning check raise these correlations?
+
+    - **E3b.** What is the test-retest reliability (ICC) of the per-block
+      indices?
+
+    - **E4a.** Does blocking change across the six test blocks, on average and
+      by participant (frequentist mixed models)?
+
+    - **E4b.** If blocking drifts, does it drift towards zero fast enough to
+      matter in practice (Bayesian mixed models)?
+  ")
+)
+```
+:::
+
+::: {.callout-note collapse="true" title="R code: Method, data collection (M1 to M8)"}
+```{r}
+#| label: replication-prereg-section-md
+fba_allergy_online_02 <- preregr::prereg_specify(
+  fba_allergy_online_02,
+
+  # Time point of registration
+  M1 = "Registration before creation/collection of data",
+
+  # Pre-existing data
+  M1_1 = NA_TEXT,
+
+  # Piloting
+  M2 = prereg_text("
+    The procedure of this study was piloted in `fba-allergy-online-01`, run
+    online via JATOS on <https://mindprobe.eu> between 9 and 26 June 2026, with
+    participants recruited from the LABELS pool and among personal contacts.
+    Out of {{pilot_records}} participant records, {{pilot_naive}} reached the
+    Naive set. The pilot was analysed in full (descriptive statistics, learning
+    check, both blocking indices, stability across test blocks) to estimate the
+    effect sizes of both indices, the retention and the yield of every exclusion
+    rule and to detect technical problems of the experiment.
+
+    The pilot estimated *d*~z~ = {{print_d(d_bi2[['full']])}} for BI~2~ in the
+    Full sample, {{print_d(d_bi2[['learned']])}} in the Learned set and
+    {{print_d(d_bi2[['naive']])}} in the Naive set, which inspire the
+    *Realistic* and *Worst* scenarios of M3.2, and *d*~z~ =
+    {{print_d(d_bi3[['full']])}}, {{print_d(d_bi3[['learned']])}} and
+    {{print_d(d_bi3[['naive']])}} for BI~3~. Its retention sets the assumed
+    retention of M3.2.
+
+    The pilot's participants are not eligible for this study, and its data are
+    never pooled with this study's data. Its analyses are documented in the
+    notebook *2 · Feasibility Study* (`02-feasibility-study.qmd`) of the
+    `CATLAS` repository.
+  "),
+
+  # Planned sample size
+  M3_sample_size = prereg_text("
+    Sample sizes refer to the Naive set (see AP1), unless stated otherwise.
+
+    **Look 1.** {{n1_recruit}} participants are recruited, aiming at
+    {{n1_planned}} in the Naive set at the assumed retention of
+    {{sprintf('%.0f%%', 100 * retention_assumed)}}, and analysed provided at
+    least {{n1_min}} reach the set given exclusion criteria (see M3.3).
+
+    **Look 2** (only if neither index detects blocking at look 1, see M3.3 and
+    AP10). The Naive set is brought to the sample *n*~2~ set by the rule of
+    M3.3: {{planned$n2}} participants at the assumed
+    {{sprintf('%.0f%%', 100 * retention_assumed)}} retention, about
+    {{planned$recruit_total}} recruited in total. The rule at the four
+    retention rates illustrated in the power analysis:
+
+    {{paste0('- ', illustration, collapse = '\n')}}
+  "),
+
+  # Sample size justification
+  M3_justification = prereg_text("
+    **Effect size scenarios.** Sample sizes are planned for BI~2~ (H1) in the
+    Naive set, for a one-sided one-sample *t*-test at &alpha; =
+    {{print_alpha(alpha_test, 2L)}}, under three scenarios of the true
+    standardised mean *d*~z~: *Best* [{{print_d(scenarios[['best']])}},
+    @beesley2011], *Realistic* ({{print_d(scenarios[['realistic']])}}, the
+    pilot's Full sample) and *Worst* ({{print_d(scenarios[['worst']])}}, the
+    pilot's Naive set). A single test needs
+    {{pick_size(sizes, 'realistic', 0.90)}} participants for 90% power under the
+    *Realistic* scenario and {{n1_planned}} for 95%.
+
+    **Retention.** The retention, i.e., the share of recruited participants
+    who reach the final Naive set, is assumed to be
+    {{sprintf('%.0f%%', 100 * retention_assumed)}}. In the pilot study, it was
+    {{print_n_pct(pilot_naive, pilot_records)}} overall and
+    {{print_n_pct(labels_naive, labels_records)}} among participants of the
+    LABELS pool.
+
+    **Design.** The study is a two-look group-sequential design [@wassmer2025],
+    planned according to design calculations using the `rpact` R package
+    [@wassmer2026] with *t*-based power (see M3.3 for the looks specification).
+    With {{n1_planned}} participants, look 1 has
+    {{print_power(planned$look1_realistic)}} power under the *Realistic* and
+    {{print_power(planned$look1_worst)}} under the *Worst* scenario. Look 2 is
+    sized for 80% overall power across both looks under the *Worst* scenario.
+
+    **BI~3~** (H2) is tested at the same looks against the same boundaries.
+    With {{n1_planned}} participants at look 1, its power is
+    {{print_power(bi3_look1[['full']])}} if its true effect equals the pilot's
+    Full sample estimate (*d*~z~ = {{print_d(d_bi3[['full']])}}) and
+    {{print_power(bi3_look1[['learned']])}} if it equals the Learned set
+    estimate (*d*~z~ = {{print_d(d_bi3[['learned']])}}).
+
+    **Precision.** If the true effect equals the *Realistic* scenario, the 90%
+    confidence interval of *d*~z~ at {{n1_planned}} participants is expected to
+    be {{print_ci(ci_realistic[1L], ci_realistic[2L])}}.
+
+    The power analysis is documented in the notebook *3 · Experiment 1: Power
+    Analysis* (`03-replication-power.qmd`) of the `CATLAS` repository.
+  "),
+
+  # Stopping rule
+  M3_stopping_rule = prereg_text("
+    **Look 1** is the replication proper. Recruitment closes once {{n1_recruit}}
+    participants have started the experiment ({{n1_planned}} /
+    {{retention_assumed}}), and the data are analysed once recruitment has
+    closed, provided at least {{n1_min}} of them reach the final Naive set. If
+    fewer participants do, recruitment continues in batches sized to reach
+    {{n1_planned}} at the retention observed so far, until at least {{n1_min}}
+    reach the Naive set. Look 1 spends a fixed one-sided &alpha;~1~ =
+    {{print_alpha(alpha1)}}.
+
+    **Look 2** takes place if and only if neither BI~2~ nor BI~3~ detects
+    blocking at look 1 (see AP10). It brings the Naive set to the smallest
+    sample *n*~2~ that gives the design 80% overall power across both looks
+    under the *Worst* scenario, given the look-1 sample *n*~1~ actually reached.
+    The number of participants recruited for look 2 assumes the retention
+    observed at look 1. If fewer than *n*~2~ then reach the Naive set,
+    recruitment continues in batches, as at look 1. Only these outcome-blind
+    quantities, i.e., the sample reached and the retention, enter the sampling
+    rule; the look-1 blocking estimates never do. At the assumed retention,
+    look 2 rejects the null hypothesis at a nominal one-sided *p* <
+    {{print_alpha(planned$p2, 4L)}} (see M3.1 for other retention rates).
+
+    **Cap on look 2.** If the rule specified above asks for more participants
+    than the LABELS pool can supply in one semester, look 2 stops at the largest
+    available sample size, and the power it achieves is reported.
+
+    **Critical values** are recomputed for the samples actually reached at each
+    look, keeping &alpha;~1~ = {{print_alpha(alpha1)}} and the overall &alpha;
+    = {{print_alpha(alpha_test, 2L)}}.
+
+    **No other look** at either blocking index is planned. Attrition, completion
+    time and the yield of the learning check are monitored during data collection
+    (see M7).
+  "),
+
+  # Population of interest
+  M4_population = "University students",
+
+  # Recruitment method
+  M4_recruitment = prereg_text("
+    The LABELS participant pool of Charles University, Prague
+    (<https://labels.ff.cuni.cz/studenti>), among students who did not take
+    part in the pilot `fba-allergy-online-01`. Participants are tested online
+    via JATOS (<https://www.jatos.org>) on <https://mindprobe.eu>, in the Czech
+    version of the experiment. Recruitment proceeds in batches, opened in the
+    order set by the sampling rules of M3.3. No batch of look 2 opens before
+    the look-1 analysis is complete.
+  "),
+
+  # Planned participant characteristics
+  M4_characteristics = prereg_text("
+    Charles University students, primarily of Czech nationality, 18–35 years
+    old, with an expected predominance of women. Each participant must be at
+    least 18 years of age and run the experiment on a laptop or desktop
+    computer. No participant characteristics are targeted.
+  "),
+
+  # Quota or stratification sampling
+  M4_quotas = NA_TEXT,
+
+  # Compensation
+  M4_compensation = prereg_text("
+    Partial credit for the course \"Vybraná témata z psychologie a
+    psycholingvistiky\" (ABO700887) at Charles University, the same for every
+    participant.
+  "),
+
+  # Drop-out
+  M5 = prereg_text("
+    Participants who leave before completing the first test block are excluded
+    (rule 3 of AP1) and not replaced. Participants who leave later keep the test
+    blocks they completed, with BI~2~ using their first test block only and
+    BI~3~ all the test blocks present (see AP5).
+  "),
+
+  # Masking
+  M6 = prereg_text("
+    Participants are not informed of the hypotheses. The task is presented as
+    learning which side effects vitamin pills cause in fictitious patients. All
+    conditions are within participants, so there is no allocation to conceal.
+    The experiment runs online without an experimenter. The learning check (rule
+    4 of AP1) uses learning-stage data only and the free-text debriefing answers
+    (rule 5) are coded from a file that holds only the participant identifiers
+    and the debriefing answers, before any blocking index is computed, so that
+    both rules are blind to the test data.
+  "),
+
+  # Ensuring quality during data collection
+  M7 = prereg_text("
+    During data collection, only attrition, completion time and the yield of the
+    learning check are monitored, to detect technical problems. Neither index is
+    computed before the analysis of a look. A technical failure that invalidates
+    data (e.g., lost uploads) may stop data collection until it is fixed; any
+    stop is reported with its reason. Any look at either index outside the looks
+    of M3.3 is a deviation from this protocol.
+  ")
+)
+```
+:::
+
+::: {.callout-note collapse="true" title="R code: Method, conditions and design (M9 to M18)"}
+```{r}
+#| label: replication-prereg-section-mc
+fba_allergy_online_02 <- preregr::prereg_specify(
+  fba_allergy_online_02,
+
+  # Research method
+  M9 = "Experiment",
+  M9_1 = "Design with repeated measures (only \"within-subject\" variables)",
+  M9_1_1 = prereg_text("
+    An experimental, cross-sectional study with a single group and a
+    within-participant three-stage forward blocking design [@lepelley2007;
+    @beesley2011], specified as the `three-stage-replication` design of
+    `catlasr` and illustrated in Table 1 of the manuscript. Each stage consists
+    of blocks of eight trial types.
+
+    - **Stage 1** (elemental training): four blocking cues and four filler cues,
+      each paired with one of two outcomes (o1, o2).
+
+    - **Stage 2** (compound training): each blocking cue in compound with a new
+      cue (the blocked cues), and four compounds of two new cues (one of them a
+      control cue), paired with o1 or o2.
+
+    - **Stage 3** (novel learning): four compounds of one blocked and one
+      control cue, paired with two new outcomes (o3, o4), and four filler
+      compounds of new cues.
+
+    - **Test**: eight pairs of one blocked and one control cue that were paired
+      with different outcomes in Stage 3. Blocking predicts preference for the
+      choice of the control cue's outcome.
+
+    The factor of interest, cue status (blocked or control), is thus manipulated
+    within participants and test pairs.
+  "),
+
+  # Multilevel structure
+  M10 = prereg_text("
+    Trial-level responses are nested within crossed by-participant and
+    by-test-pair clusters. The confirmatory tests (AP8) use one value of each
+    index per participant; the exploratory mixed models (E4a, E4b) model the
+    trial level.
+  "),
+
+  # Randomisation
+  M11 = prereg_text("
+    Independently for each participant, the 28 cue roles are randomly assigned
+    the names of 28 fictitious chemicals, and the four outcomes are randomly
+    assigned the four side effects (dizziness, itchiness, headache, nausea).
+    Within every block, the order of the eight trial types is randomised, with
+    the constraint that no trial type repeats across a block boundary. The
+    left-right order of the two cues of a compound is counterbalanced across the
+    blocks of Stages 2 and 3 and of the test stage. The screen position of the
+    outcomes is fixed (o1 and o3 left, o2 and o4 right).
+  "),
+
+  # Variables of the confirmatory analyses
+  M12 = prereg_text("
+    **Dependent variables.** On every test trial, the outcome chosen (one of the
+    two Stage 3 outcomes) and the confidence in the choice (1, *Not confident at
+    all*, to 10, *Very confident*). From these, the signed confidence of a trial
+    is the confidence if the participant chose the outcome paired in Stage 3
+    with the control cue of the pair, and minus the confidence otherwise.
+
+    - **BI~2~** [@beesley2011]: the mean signed confidence over the answered
+      trials of the first test block, i.e., of 8 trials (from −10 to 10;
+      `catlasr::index_blocking(blocks = 1)`, column `bi_confidence`). It is the
+      index of H1.
+
+    - **BI~3~** [@paskewitz2020]: over the answered trials of all six test
+      blocks, i.e., of up to 48 trials, the sum across the eight test pairs of
+      the proportion of choices of the control cue's outcome, minus one half
+      per pair (from −4 to 4; `catlasr::index_blocking(blocks = NULL)`, column
+      `bi_choice`). It is the index of H2.
+
+    **Independent variable.** Cue status (blocked or control), manipulated
+    within participants (M9.1.1); the indices contrast the two.
+  "),
+
+  # Other variables
+  M13 = prereg_text("
+    Accuracy and response times of the learning trials (the learning check of
+    AP1), response times of the test trials, the two debriefing answers (AP1,
+    rule 5), age and sex (sample description only), and the duration of the run.
+    No covariates enter the confirmatory analyses.
+  "),
+
+  # Exhaustiveness of variables
+  M14 = prereg_text(
+    "All variables of the planned study are outlined here and their roles are
+    clearly defined. We are aware that any changes to the variables and their
+    defined roles is a deviation from this preregistration and must be reported
+    in the article."
+  ),
+
+  # Collection mode
+  M15 = prereg_text(
+    "Instrumental measurements (e.g., response times, eye tracking, motion
+    tracking, EEG, ECG, pulse sensor, breathing, (f)MRI, body dimensions);
+    Surveys (e.g., interviews, questionnaires)"
+  ),
+
+  # Study materials
+  M16 = prereg_text("
+    The experiment is programmed in jsPsych and released in the `catlaslab`
+    repository under the `fba-allergy-online-02` release. The cue names follow
+    the fictitious chemicals of @lepelley2007, adapted to Czech. Every trial
+    shows the cue names with a flask icon at the top of the screen, the question
+    which reaction the patient will experience, and two images of the patient
+    (Mr X in Stages 1 and 2, Mr Y in Stage 3 and the test stage), each showing
+    one side effect.
+  "),
+
+  # Study procedures
+  M17 = prereg_text("
+    The procedure follows @beesley2011, a variant of the allergist task
+    [@dickinson1996; @lochmann2003]. After informed consent, participants read
+    the instructions, which include animated tutorials and requests not to take
+    notes and to focus on correct rather than fast responses. Stage 1 has 10
+    blocks (80 trials), Stage 2 has 8 blocks (64 trials), Stage 3 has 6 blocks
+    (48 trials) and the test stage has 6 blocks (48 trials). On every trial,
+    participants click the image of the side effect they predict and confirm
+    with an OK button. In Stages 1–3, the words *Correct* (green) or *Wrong*
+    (red) and a frame around the correct image follow every response for 1.5
+    seconds. In the test stage, there is no feedback and every choice is
+    followed by the confidence rating. Stage 3 introduces a new patient, with
+    a new instruction text. A trial without a response ends after 60 seconds.
+    The experiment ends with the debriefing questions of AP1 (rule 5) and a
+    debriefing about the purpose of the study.
+  "),
+
+  # Other information
+  M18 = prereg_text("
+    The power analysis behind M3 is documented in the notebook
+    *3 · Experiment 1: Power Analysis* (`03-replication-power.qmd`) of the
+    `CATLAS` repository, and the pilot behind it in *2 · Feasibility Study*
+    (`02-feasibility-study.qmd`).
+  ")
+)
+```
+:::
+
+::: {.callout-note collapse="true" title="R code: Analysis plan (AP)"}
+```{r}
+#| label: replication-prereg-section-ap
+# Labels of the five exclusion rules, as in the feasibility notebook
+rule_labels <- c(
+  no_jspsych_data                    = "No jsPsych data",
+  declined_consent                   = "Declined consent",
+  incomplete_run                     = "Incomplete run",
+  learning_not_reliably_above_chance = "Insufficient learning",
+  prior_knowledge_reported           = "Prior knowledge"
+)
+
+# The prior-knowledge rule is reworded for the two-part debriefing question of
+# fba-allergy-online-02 (catlaslab#9); the other four are the pilot's.
+# The data set script of fba-allergy-online-02 records this wording verbatim.
+rule_prior_knowledge <- prereg_text("
+  The participant answered yes to the debriefing question \"Before today,
+  have you taken part in an experiment in which you predicted reactions from
+  foods or medicines?\", or their answer to the debriefing question \"Did you
+  know or guess what this study tested? If so, describe it.\" was coded as
+  describing blocking. An answer describes blocking if it states that learning
+  about a cue is reduced when the cue is presented together with a cue that
+  already predicts the outcome, or if it names blocking, cue competition or
+  learned (in)attention. Answers that describe only the surface of the task
+  (predicting side effects, memory, attention or learning in general) do not.
+  The answers are coded before any blocking index is computed.
+")
+
+rules_02 <- write_prereg_rules(
+  rules_pilot,
+  rule_labels,
+  revised = c(prior_knowledge_reported = rule_prior_knowledge)
+)
+
+decisions_02 <- write_prereg_decisions(design$decisions, design$thresholds)
+
+fba_allergy_online_02 <- preregr::prereg_specify(
+  fba_allergy_online_02,
+
+  # Exclusion of participants
+  AP1 = prereg_text("
+    **Inclusion criteria for data collection.** Students of the LABELS pool
+    (M4.2) who are at least 18 years old, did not take part in the pilot
+    `fba-allergy-online-01`, and run the experiment on a laptop or desktop
+    computer.
+
+    **Exclusion criteria.** Participants are excluded by the following rules,
+    applied in the order listed. An excluded participant is counted under the
+    first rule that removes them. Rules 1–4 are worded verbatim as in the
+    provenance record of the pilot's data, rule 5 is reworded for the new
+    debriefing question.
+
+    {{paste(rules_02, collapse = '\n')}}
+
+    The rules define three nested analysis sets: the **Full sample** (after
+    rules 1–3), the **Learned set** (after rules 1–4) and the **Naive
+    set** (after rules 1–5). The Naive set is the primary analysis set and
+    alone tests H1 and H2. The other two serve the sensitivity analyses of
+    AP8. Rules 4 and 5 are blind to the test data (see M6).
+
+    **Outliers.** No participant is excluded as an outlier on any variable. An
+    excluded participant is excluded from all analyses of the sets that the
+    rule removes them from.
+  "),
+
+  # Exclusion of trials
+  AP2 = prereg_text("
+    Only timed-out trials, i.e., trials without a response within 60 seconds,
+    are excluded (see AP5). No trials are excluded for their response times.
+  "),
+
+  # Exhaustiveness of exclusion criteria
+  AP3 = "All exclusion criteria (on the participant and trial/item level) that are currently planned are listed above.",
+
+  # Preprocessing and quality control during analyses
+  AP4 = prereg_text("
+    The JATOS study results are imported, validated and anonymised with the
+    `catlasr` R package. Validation (`validate_fba_rawdata()`) must pass
+    before any analysis. The exclusion rules of AP1 are recorded in the
+    provenance record of the data set with the `record_exclusion()` function,
+    in the order they are applied. The learning check of rule 4 is computed
+    with `test_learning(alpha = 0.10)` and `screen_learning(rule = \"any\")`.
+    Test trials are scored with `score_blocking()`, which signs every answered
+    trial by whether its choice is consistent with blocking, and the indices of
+    M12 are computed per participant with `index_blocking()`: BI~2~ on the
+    first test block, BI~3~ over all test blocks, and both per test block
+    (`by_block = TRUE`) for the exploratory analyses. The indices are not
+    screened for outliers, transformed or winsorised.
+  "),
+
+  # Missing data
+  AP5 = prereg_text("
+    **Definition.** Learning and test trials end without a response after 60
+    seconds. Such timed-out trials have no response and enter neither the
+    learning check (rule 4 of AP1) nor the indices, which average over
+    answered trials only. A participant's BI~2~ is missing if every trial of
+    the first test block timed out, and their BI~3~ if a test pair has no
+    answered trial. Both debriefing questions, upon which prior knowledge of
+    the design is established, are compulsory.
+
+    **Handling.** A participant whose BI~2~ is missing is left out of the test
+    of H1, and a participant whose BI~3~ is missing is left out of the test of
+    H2 (case-wise deletion per analysis). Missing data are not imputed.
+
+    **Missingness mechanism.** Whether trials are missing at random is not
+    tested; the number of timed-out trials and of participants left out is
+    reported.
+  "),
+
+  # Reliability
+  AP6 = prereg_text("
+    The reliability of the indices across the six test blocks is estimated in
+    the exploratory analyses E3a and E3b (AP11). It does not enter the
+    confirmatory analyses.
+  "),
+
+  # Descriptive statistics
+  AP7 = prereg_text("
+    For the recruited sample: the number of participants removed by each
+    exclusion rule; the age and sex of every analysis set, in aggregate only;
+    the duration of the run. For the learning stages: the accuracy per stage and
+    block, by cue type (learning curves). For each index and analysis set: the
+    mean, standard deviation and 90% confidence interval, and *d*~z~ (mean
+    divided by standard deviation) with its exact 90% confidence interval,
+    obtained by inverting the noncentral *t* distribution. 90% CIs are selected
+    instead of their more typical 95% counterparts because the former align
+    better with the one-sided test applied to the data. Finally, per-block means
+    of both indices are plotted across the six test blocks.
+  "),
+
+  # Statistical models
+  AP8 = prereg_text("
+    **H1.** One-sided one-sample *t*-test of the per-participant BI~2~ against
+    zero (alternative: mean greater than zero), in the Naive set, at each look
+    of M3.3. At look 2, the test uses all participants of the Naive set (looks 1
+    and 2 together) and the critical value of the two-look design, computed with
+    `rpact::getAnalysisResults()` from the stage-wise sample sizes, means and
+    standard deviations (*t*-based, version {{version_rpact}} at registration).
+
+    **H2.** The same test of the per-participant BI~3~, at the same looks and
+    boundaries.
+
+    **Correction for multiple testing.** BI~2~ and BI~3~ are not corrected for
+    each other, because they decide different questions: only BI~2~ decides the
+    replication, only BI~3~'s result decides which index the extension study
+    uses (AP10). The two looks are corrected by the &alpha; spending of M3.3.
+
+    **Sensitivity analyses.** *d*~z~ with its 90% confidence interval for both
+    indices in the Full sample and in the Learned set. These estimates are
+    reported, but do not decide anything.
+
+    **Estimates after look 2.** If the study stops at look 2, the effect is
+    reported as the median-unbiased estimate with its confidence interval under
+    the stage-wise ordering, which correct the bias of the naive estimate after
+    a sequential design, alongside the naive estimate.
+  "),
+
+  # Assumption tests
+  AP9 = prereg_text("
+    **One-sample *t*-tests (H1, H2).** Normality of the per-participant indices
+    is not tested; the one-sample *t*-test is applied regardless on the basis
+    of the central limit theorem, following established practice of previous
+    forward blocking experimental studies. Independence of participants holds
+    by design. No transformations or non-parametric alternatives are planned.
+
+    **Mixed models (E4a).** Singular fits are refitted without the correlation
+    of the random effects and, if still singular, left out (see AP11).
+  "),
+
+  # Inference criteria
+  AP10 = prereg_text("
+    An index **passes** at a look if its one-sided test rejects the null
+    hypothesis of no blocking at the threshold of that look: one-sided *p* <
+    {{print_alpha(alpha1)}} at look 1, and below the nominal threshold of the
+    recomputed look-2 critical value at look 2 (about
+    {{print_alpha(planned$p2, 3L)}} at the
+    {{sprintf('%.0f%%', 100 * retention_assumed)}} assumed retention, see
+    M3.3). H1 and H2 are separate hypotheses without sub-hypotheses. The result
+    of BI~2~ alone decides whether the replication succeeds (H1); the result of
+    BI~3~ alone decides which index carries on to `fba-allergy-online-03`. The
+    decision tree:
+
+    {{paste(decisions_02, collapse = '\n')}}
+
+    A failure at look 2 of both indices ends the online line of studies: the
+    next step is a laboratory replication with eye tracking. No smallest effect
+    size of interest is defined. The design is planned for 80% overall power at
+    *d*~z~ = {{print_d(scenarios[['worst']])}}, the smallest of the scenarios.
+    For the extension study, *d*~z~ of the selected index is reported with its
+    95% confidence interval, because the extension study tests a two-sided
+    hypothesis adjudicating between two competing theories.
+  "),
+
+  # Exploratory analyses
+  AP11 = prereg_text("
+    The following analyses are exploratory and are reported as such, in every
+    analysis set.
+
+    - **E1.** A design analysis [@gelman2014] of each index at the sample
+      reached, giving the probability of a sign error (Type S) and the expected
+      exaggeration ratio (Type M) of a significant estimate under each of the
+      three scenarios of M3.2.
+
+    - **E2.** Pearson's correlation of the per-participant BI~2~ and BI~3~,
+      with its 95% confidence interval.
+
+    - **E3a.** The 6 × 6 matrices of Pearson's correlations of the per-block
+      indices between test blocks, for each index. Higher correlations in the
+      Learned and Naive sets than in the Full sample would suggest that the
+      learning check raises between-block reliability.
+
+    - **E3b.** Intraclass correlations of the per-block indices across the six
+      test blocks, for each index: two-way, consistency, single block (ICC(3,1))
+      and mean of six blocks (ICC(3,6)), with 95% confidence intervals.
+
+    - **E4a.** Three nested mixed models of the trial-level data of each index,
+      fitted with `{lme4}`: signed confidence (BI~2~) as Gaussian and the
+      blocking-consistent choice (BI~3~) as binomial with a logit link, with
+      crossed by-participant and by-test-pair random intercepts, and (1) no
+      change across test blocks, (2) a common linear drift (test block coded
+      0–5), (3) an additional by-participant drift. Singular fits are
+      refitted without the correlation of the random effects and, if still
+      singular, left out. The models are compared by likelihood-ratio tests and
+      AIC.
+
+    - **E4b.** Bayesian versions of the three models, fitted in Stan with weakly
+      informative default priors as in `{rstanarm}`, for the choice (binomial,
+      logit link) and for the unsigned confidence (ordinal, cumulative logit),
+      with linear drift only. If blocking drifts towards zero, the extrapolated
+      test block at which the drift line of the choice model crosses zero is
+      evaluated by the posterior probability that the slope is greater than
+      minus the intercept divided by 9, i.e., that the line crosses zero after
+      the 10th test block (and, likewise, after the 6th block, dividing by 5). A
+      crossing after the 10th block is taken as practically insignificant drift.
+      The slopes of the choice and confidence models are compared.
+  "),
+
+  # Other information
+  AP12 = "Deviations from this registration are reported and justified in the manuscript."
+)
+```
+:::
+
+::: {.callout-note collapse="true" title="R code: Other information (O) and references (R)"}
+```{r}
+#| label: replication-prereg-section-o
+fba_allergy_online_02 <- preregr::prereg_specify(
+  fba_allergy_online_02,
+
+  # Deviations from the pilot and from the original study
+  O1 = prereg_text("
+    **Deviations from the pilot `fba-allergy-online-01`.**
+
+    - Data are uploaded in full at the end of the experiment, in addition to
+      trial by trial, so that a lost connection no longer loses data.
+
+    - The instructions state the expected duration, the need for a stable
+      internet connection and for a quiet environment.
+
+    - The pages scale relative to the screen, for laptop, desktop and tablet
+      screens.
+
+    - The single debriefing question about taking part in a similar experiment
+      is replaced by the two compulsory questions of rule 5 of AP1, and the rule
+      is reworded accordingly, with a coding rule for the free text.
+
+    - The Naive set is the primary analysis set; in the pilot, it was the
+      Learned set. The prior-knowledge exclusion removes participants who may
+      answer from what they expect the study to show, which the pilot could not
+      afford with its small sample.
+
+    - Participants are recruited from the LABELS pool only (the pilot also
+      recruited personal contacts), among students who did not take part in the
+      pilot.
+
+    **Deviations from @beesley2011.** The study runs online rather than in the
+    laboratory and without eye tracking, in Czech. The test stage is repeated
+    six times instead of once. The original index (BI~2~) uses the first test
+    block only, so that it remains comparable. Participants who do not learn
+    reliably above chance or report prior knowledge are excluded, which
+    @beesley2011 did not do.
+  ")
+)
+
+# The references of every item, generated from the bibliography; specified
+# last, so that every citation is included
+fba_allergy_online_02 <- preregr::prereg_specify(
+  fba_allergy_online_02,
+  R1 = prereg_references(fba_allergy_online_02, BIB, CSL)
+)
+```
+:::
+
+# Pre-registration
+
+The items the web form shows given the answers, in the order of the template.
+The references are listed at the end of this notebook.
+
+```{r}
+#| label: replication-prereg-form
+#| results: asis
+cat(prereg_to_markdown(
+  fba_allergy_online_02,
+  exclude = "R1",
+  heading_level = 2L,
+  item_style = "bold"
+))
+```
+
+# Completion check {#sec-prereg-completion}
+
+The table below shows items that the web form has but that are still required
+to be filled, optional and unspecified, or marked for a later decision, and
+items that the web form would hide given the answers.
+
+```{r}
+#| label: replication-prereg-completion
+completion <- check_prereg(fba_allergy_online_02)
+
+if (nrow(completion) == 0L) {
+  cat("Every item of the form is specified.")
+} else {
+  completion |>
+    gt() |>
+    cols_label(
+      item   = "Item",
+      label  = "Label",
+      status = "Status"
+    )
+}
+```
+
+# Export
+
+The registration is exported to the manuscript's `outputs/` folder as a PDF
+(`A1-replication-prereg.pdf`) and as a state file of the PreReg web form
+(`A1-replication-prereg-zpid.rds`). In the state file, the answers are plain
+text with the citations resolved.
+
+```{r}
+#| label: replication-prereg-export
+outputs <- output_dir(MANUSCRIPT)
+dir.create(outputs, showWarnings = FALSE)
+
+prereg_to_pdf(
+  fba_allergy_online_02,
+  file = file.path(outputs, "A1-replication-prereg.pdf"),
+  title = fba_allergy_online_02$specs$T1$text,
+  subtitle = "Pre-registration of fba-allergy-online-02 (PRP-QUANT Template, version 4)",
+  bibliography = BIB,
+  csl = CSL,
+  contributors = contributors
+)
+
+zpid_state <- prereg_to_zpid(
+  fba_allergy_online_02,
+  file = file.path(outputs, "A1-replication-prereg-zpid.rds"),
+  contributors = contributors,
+  bibliography = BIB,
+  csl = CSL
+)
+```
+
+# Software
+
+::: {.callout-note collapse="true" title="Functions used in this notebook"}
+The helpers of this notebook are sourced at its start from
+`common/R/utils-print.R`, `common/R/utils-outputs.R`, `common/R/utils-stats.R`
+and `common/R/utils-prereg.R`, the PRP-QUANT V4 form from
+`common/R/prereg-prpquant-v4.R` (all shared by all manuscripts), and the
+two-look design from
+`manuscripts/forward-blocking-attention-01/R/03-replication-power.R`. The code
+of the pre-registration helpers and of the form is shown here.
+
+```{r}
+#| label: replication-prereg-code-utils-prereg
+#| file: !expr file.path(REPO, "common", "R", "utils-prereg.R")
+#| echo: true
+#| eval: false
+```
+
+```{r}
+#| label: replication-prereg-code-prpquant-v4
+#| file: !expr file.path(REPO, "common", "R", "prereg-prpquant-v4.R")
+#| echo: true
+#| eval: false
+```
+:::
+
+::: {.callout-note collapse="true" title="Session info"}
+```{r}
+#| label: replication-prereg-session-info
+#| echo: true
+sessioninfo::session_info()
+```
+:::
+
+# References

@@ -10,8 +10,8 @@ manuscript:
       title: "2 · Feasibility Study"
     - notebook: notebooks/03-replication-power.qmd
       title: "3 · Experiment 1: Power Analysis"
-    - notebook: notebooks/04-replication-prereg.qmd
-      title: "4 · Experiment 1: Pre-registration"
+    - notebook: notebooks/A1-replication-prereg.qmd
+      title: "A1 · Experiment 1: Pre-registration"
 
 format:
   html:
