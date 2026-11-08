@@ -141,3 +141,14 @@ print_p <- function(p) {
 print_power <- function(x) {
   ifelse(x >= 0.995, "> 99%", sprintf("%.0f%%", 100 * x))
 }
+
+
+#' Print significance levels without the leading zero
+#'
+#' @param x Numeric. The significance levels.
+#' @param digits Integer(1). Decimals to print.
+#'
+#' @returns Character, as many elements as `x`, e.g. `".045"`.
+print_alpha <- function(x, digits = 3L) {
+  sub("^0", "", sprintf(paste0("%.", digits, "f"), x))
+}
