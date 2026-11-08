@@ -36,10 +36,8 @@ editor:
 library(tidyverse)
 library(gt)
 
-devtools::load_all("../../../catlasr")
-devtools::load_all("../../../../mathpsychr")
-
-data("fb_designs", package = "catlasr")
+REPO <- rprojroot::find_root(rprojroot::has_file("CATLAS.Rproj"))
+source(file.path(REPO, "common", "R", "utils-tables.R"))
 ```
 
 # Introduction {#sec-intro}
@@ -221,7 +219,7 @@ design_tab |>
     ends_with("outcome") ~ "Outcome",
     ends_with("preference") ~ "Preferred"
   ) |>
-  catlasr::apa_style()
+  apa_style()
 ```
 
 The **standard blocking design** [e.g., @wills2007; @liu2013; @spicer2021]
