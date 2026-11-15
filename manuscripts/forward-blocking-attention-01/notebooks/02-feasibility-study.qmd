@@ -69,14 +69,14 @@ following text.
 ::: {.callout-note collapse="true" title="R code: Data import"}
 ```{r}
 #| label: feasibility-data
-# The four data bundles are written to the private folder
-# (`CATLAS_PRIVATE_DIR`) by the {catlasr} import vignette, rendered with
-# `params = list(save = TRUE)`. If any of them is missing, the
+# The four data bundles are written to the study folder `fba-allergy-online-01`
+# of the private folder (`CATLAS_PRIVATE_DIR`) by the {catlasr} import vignette,
+# rendered with `params = list(save = TRUE)`. If any of them is missing, the
 # `read_private_rds()` will stop and name the files the folder contains.
-fba_imported   <- read_private_rds("fba-allergy-online-01-imported.rds")    # Before any exclusion
-fba_structural <- read_private_rds("fba-allergy-online-01-structural.rds")  # Full sample
-fba_screened   <- read_private_rds("fba-allergy-online-01-screened.rds")    # Primary analysis
-fba_naive      <- read_private_rds("fba-allergy-online-01-naive.rds")       # Naive set
+fba_imported   <- read_private_rds("fba-allergy-online-01/imported.rds")    # Before any exclusion
+fba_structural <- read_private_rds("fba-allergy-online-01/structural.rds")  # Full sample
+fba_screened   <- read_private_rds("fba-allergy-online-01/screened.rds")    # Primary analysis
+fba_naive      <- read_private_rds("fba-allergy-online-01/naive.rds")       # Naive set
 
 # The naive bundle's provenance records all five exclusion rules, the last of
 # which defines the Naive set

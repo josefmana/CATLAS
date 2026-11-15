@@ -91,7 +91,7 @@ funnel <- read_output("02-feasibility-funnel.rds", MANUSCRIPT)
 # The exclusion rules, verbatim from the provenance record of the pilot's naive
 # data bundle
 rules_pilot <- catlasr::provenance(
-  catlasr::read_private_rds("fba-allergy-online-01-naive.rds")
+  catlasr::read_private_rds("fba-allergy-online-01/naive.rds")
 )$exclusions
 
 # The rules are messaged by {preregr} only when an item fails validation
