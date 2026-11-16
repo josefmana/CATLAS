@@ -41,14 +41,6 @@ record of the pilot's `{catlasr}` data bundle, apart from the two rules that
 analyses that justify its contents.
 :::
 
-::: {.callout-warning title="To decide before submission"}
-Items still holding a **To decide** or **To add** marker are listed in the
-[completion check](#sec-prereg-completion) at the end of this notebook. They
-are:
-
-- **PD2.1** the ID of the ethics proposal of `fba-allergy-online-02`.
-:::
-
 # Specification
 
 Here, I fill the pre-registration form section by section in the collapsed
@@ -57,7 +49,9 @@ function, which fills in the values of the design and joins the lines of every
 paragraph. Items marked as not applicable hold the form's not-applicable text,
 which the export turns into a ticked *NA* checkbox.
 
-::: {.callout-note collapse="true" title="R code: Set-up"}
+::: {.callout-note collapse="true" title="R code: Pre-registration form"}
+### Set-up
+
 ```{r}
 #| label: replication-prereg-envir
 # {preregr} is called with its namespace rather than attached, because
@@ -167,8 +161,13 @@ illustration <- with(
   )
 )
 
-# Versions of the software the registration names
-version_catlasr <- as.character(utils::packageVersion("catlasr"))
+# Versions of the software the registration names. For {catlasr}, the
+# registered release, also when its development version (".9000") is installed
+version_catlasr <- sub(
+  "\\.9[0-9]{3}$",
+  "",
+  as.character(utils::packageVersion("catlasr"))
+)
 version_rpact <- as.character(utils::packageVersion("rpact"))
 
 # The contributors, as entered in the contributor fields of the web form
@@ -180,9 +179,11 @@ contributors <- tibble::tibble(
   role        = "Author(s) / Creator(s)"
 )
 ```
-:::
 
-::: {.callout-note collapse="true" title="R code: Title page (T)"}
+---
+
+### Title page (T)
+
 ```{r}
 #| label: replication-prereg-section-t
 fba_allergy_online_02 <- preregr::prereg_specify(
@@ -207,21 +208,23 @@ fba_allergy_online_02 <- preregr::prereg_specify(
   T5 = "This is the first preregistration of this study."
 )
 ```
-:::
 
-::: {.callout-note collapse="true" title="R code: Project documentation (PD)"}
+---
+
+### Project documentation (PD)
+
 ```{r}
 #| label: replication-prereg-section-pd
 fba_allergy_online_02 <- preregr::prereg_specify(
   fba_allergy_online_02,
 
   # Estimated duration
-  PD1_start = "16.11.2026",
-  PD1_end = "31.12.2028",
+  PD1_start = "24.11.2026",
+  PD1_end = "12.12.2028",
 
   # Ethics
   PD2 = "Not yet but is planned",
-  #PD2_1 = "TBA",
+  #PD2_1 = "",
 
   # Conflict of interest
   PD3 = prereg_text(
@@ -240,9 +243,15 @@ fba_allergy_online_02 <- preregr::prereg_specify(
 
   # Software
   PD5 = prereg_text("
-    The experiment is written in jsPsych, implemented in JATOS, distributed to
-    participants via www.mindprobe.eu. All data import, processing and analysis
-    is done in R. Manuscripts are written in Quarto accessed via RStudio.
+    The experiment is written in jsPsych (core 7.3.2, with the plugins
+    html-button-response and preload 1.1.0, and browser-check, call-function,
+    fullscreen and html-keyboard-response 2.1.0) and runs on the JATOS server
+    of <https://mindprobe.eu>, through which it is distributed to participants.
+    The JATOS version at deployment is recorded on the release page of
+    `fba-allergy-online-02` (see M16). All data import, processing and analysis
+    is done in R, the import and preprocessing with the `catlasr` package
+    (version {{version_catlasr}} or its development version, see PD8).
+    Manuscripts are written in Quarto accessed via RStudio.
   "),
 
   # Sharing levels
@@ -261,26 +270,43 @@ fba_allergy_online_02 <- preregr::prereg_specify(
     behind it, in the `CATLAS` repository
     (<https://github.com/josefmana/CATLAS>).
 
-    All raw response data as well as by-participant browser metadata will be
-    shared under the MIT licence as a dataset of the `catlasr` R package, built
-    by a script that applies the exclusion rules of AP1 and records them in the
-    data set's provenance. Participants' age and sex are reported as aggregates
-    (means and proportions) in the manuscript but not shared publicly.
+    The raw data, i.e., the trial-level responses (the choice, its correctness,
+    the confidence rating and the response times of every trial), the yes/no
+    answer to the first debriefing question, whether the debriefing timed out,
+    and by-participant browser metadata, will be shared under the CC BY 4.0
+    licence as a data set of the `catlasr` R package (whose code is under the
+    MIT licence). The data set is built by a script that applies the exclusion
+    rules of AP1 and records them in the data set's provenance, so that every
+    analysis set of AP1 can be selected from it. As participants are told
+    before giving consent, their free-text answers, e-mail addresses and
+    platform identifiers are never shared, and their age and sex are reported
+    only as aggregates (means and proportions) in the manuscript.
   "),
 
   # Other information: standard lab practices
   PD8 = prereg_text("
-    The `catlasr` R package (version {{version_catlasr}} at registration)
-    implements the import and validation of the raw data, the recording of
-    exclusion rules in provenance, the learning check and the blocking indices,
-    which the analysis plan refers to by function name. A release of `catlasr`
-    is tagged before data collection begins and used throughout.
+    **Ethics.** The study is submitted to the ethics committee of the Institute
+    of Psychology of the Czech Academy of Sciences as a new application, since
+    the approval of the pilot does not extend to it. It undergoes full review
+    because the optional e-mail address stays linked to the responses until the
+    data are downloaded.
+
+    **Software.** The `catlasr` R package (version {{version_catlasr}}, tag
+    `v{{version_catlasr}}` of its repository) implements the import and
+    validation of the raw data, the recording of exclusion rules in provenance,
+    the learning check and the blocking indices, which the analysis plan refers
+    to by function name. The data are processed with this version or its
+    development version {{version_catlasr}}.9000 throughout. Any change in the
+    development version to these functions that could alter a reported number
+    is reported as a deviation from this registration.
   ")
 )
 ```
-:::
 
-::: {.callout-note collapse="true" title="R code: Abstract (A)"}
+---
+
+### Abstract (A)
+
 ```{r}
 #| label: replication-prereg-section-a
 fba_allergy_online_02 <- preregr::prereg_specify(
@@ -319,9 +345,11 @@ fba_allergy_online_02 <- preregr::prereg_specify(
   A3 = "Cognitive psychology"
 )
 ```
-:::
 
-::: {.callout-note collapse="true" title="R code: Introduction (I)"}
+---
+
+### Introduction (I)
+
 ```{r}
 #| label: replication-prereg-section-i
 fba_allergy_online_02 <- preregr::prereg_specify(
@@ -429,9 +457,11 @@ fba_allergy_online_02 <- preregr::prereg_specify(
   ")
 )
 ```
-:::
 
-::: {.callout-note collapse="true" title="R code: Method, data collection (M1 to M8)"}
+---
+
+### Method, data collection (M1 to M8)
+
 ```{r}
 #| label: replication-prereg-section-md
 fba_allergy_online_02 <- preregr::prereg_specify(
@@ -594,7 +624,12 @@ fba_allergy_online_02 <- preregr::prereg_specify(
   M4_compensation = prereg_text("
     Partial credit for the course \"Vybraná témata z psychologie a
     psycholingvistiky\" (ABO700887) at Charles University, the same for every
-    participant.
+    participant. Participation is confirmed by a screenshot of the farewell
+    screen or by the e-mail address that participants may enter after giving
+    consent. The address is optional (participants who prefer to stay anonymous
+    enter \"x\"), is used solely for the credit, is separated from the responses
+    when the data are downloaded, and is deleted once LABELS has confirmed
+    participation.
   "),
 
   # Drop-out
@@ -613,8 +648,8 @@ fba_allergy_online_02 <- preregr::prereg_specify(
     The experiment runs online without an experimenter. The learning check (rule
     4 of AP1) uses learning-stage data only and the free-text debriefing answers
     (rule 5) are coded from a file that holds only the participant identifiers
-    and the debriefing answers, before any blocking index is computed, so that
-    both rules are blind to the test data.
+    and the debriefing answers (see AP4), before any blocking index is
+    computed, so that both rules are blind to the test data.
   "),
 
   # Ensuring quality during data collection
@@ -628,9 +663,11 @@ fba_allergy_online_02 <- preregr::prereg_specify(
   ")
 )
 ```
-:::
 
-::: {.callout-note collapse="true" title="R code: Method, conditions and design (M9 to M18)"}
+---
+
+### Method, conditions and design (M9 to M18)
+
 ```{r}
 #| label: replication-prereg-section-mc
 fba_allergy_online_02 <- preregr::prereg_specify(
@@ -711,8 +748,10 @@ fba_allergy_online_02 <- preregr::prereg_specify(
   # Other variables
   M13 = prereg_text("
     Accuracy and response times of the learning trials (the learning check of
-    AP1), response times of the test trials, the two debriefing answers (AP1,
-    rule 5), age and sex (sample description only), and the duration of the run.
+    AP1), response times of the test trials, the two debriefing answers and
+    whether the debriefing timed out (AP1, rule 5), age and sex (sample
+    description only), and the duration of the run. An optional free-text
+    comment at the end of the debriefing is neither imported nor analysed.
     No covariates enter the confirmatory analyses.
   "),
 
@@ -733,21 +772,32 @@ fba_allergy_online_02 <- preregr::prereg_specify(
 
   # Study materials
   M16 = prereg_text("
-    The experiment is programmed in jsPsych and released in the `catlaslab`
-    repository under the `fba-allergy-online-02` release. The cue names follow
-    the fictitious chemicals of @lepelley2007, adapted to Czech. Every trial
-    shows the cue names with a flask icon at the top of the screen, the question
-    which reaction the patient will experience, and two images of the patient
-    (Mr X in Stages 1 and 2, Mr Y in Stage 3 and the test stage), each showing
-    one side effect.
+    The experiment is programmed in jsPsych (PD5). Every build of it lives in
+    one folder of the `catlaslab` repository,
+    `studies/forward-blocking-attention-01/fba-allergy-online/`, and builds are
+    told apart by release tags, each with the JATOS study archive (`.jzip`) as
+    deployed attached. This study runs the release `fba-allergy-online-02`; the
+    pilot ran `fba-allergy-online-01`. The cue names follow the fictitious
+    chemicals of @lepelley2007, adapted to Czech. Every trial shows the cue
+    names with a flask icon at the top of the screen, the question which
+    reaction the patient will experience, and two images of the patient (Mr X in
+    Stages 1 and 2, Mr Y in Stage 3 and the test stage), each showing one side
+    effect.
   "),
 
   # Study procedures
   M17 = prereg_text("
     The procedure follows @beesley2011, a variant of the allergist task
-    [@dickinson1996; @lochmann2003]. After informed consent, participants read
-    the instructions, which include animated tutorials and requests not to take
-    notes and to focus on correct rather than fast responses. Stage 1 has 10
+    [@dickinson1996; @lochmann2003]. A browser check first turns away devices
+    whose browser reports itself as mobile (mostly phones). A welcome screen,
+    which asks participants to reserve about 25 to 30 minutes, a stable
+    internet connection and a quiet environment, and four screens of study
+    information precede the informed consent. Declining consent ends the
+    experiment and deletes the data recorded so far. Participants may then
+    enter an e-mail address for the course credit (M4.5), state their sex and
+    age (both required, with no answer preselected), and read the instructions,
+    which include animated tutorials and requests not to take notes and to
+    focus on correct rather than fast responses. Stage 1 has 10
     blocks (80 trials), Stage 2 has 8 blocks (64 trials), Stage 3 has 6 blocks
     (48 trials) and the test stage has 6 blocks (48 trials). On every trial,
     participants click the image of the side effect they predict and confirm
@@ -755,9 +805,13 @@ fba_allergy_online_02 <- preregr::prereg_specify(
     (red) and a frame around the correct image follow every response for 1.5
     seconds. In the test stage, there is no feedback and every choice is
     followed by the confidence rating. Stage 3 introduces a new patient, with
-    a new instruction text. A trial without a response ends after 60 seconds.
-    The experiment ends with the debriefing questions of AP1 (rule 5) and a
-    debriefing about the purpose of the study.
+    a new instruction text. A learning trial without a response ends after 60
+    seconds. A test trial ends as unanswered after 60 seconds unless both the
+    choice and the confidence rating are given. Instruction screens end after
+    180 seconds and the consent screen has no time limit. The experiment ends
+    with the debriefing questions of AP1 (rule 5), whose screen also ends after
+    180 seconds, an optional comment, and a farewell screen that serves as the
+    confirmation of participation (M4.5).
   "),
 
   # Other information
@@ -769,9 +823,11 @@ fba_allergy_online_02 <- preregr::prereg_specify(
   ")
 )
 ```
-:::
 
-::: {.callout-note collapse="true" title="R code: Analysis plan (AP)"}
+---
+
+### Analysis plan (AP)
+
 ```{r}
 #| label: replication-prereg-section-ap
 # Labels of the five exclusion rules, as in the feasibility notebook, in the
@@ -855,6 +911,13 @@ fba_allergy_online_02 <- preregr::prereg_specify(
 
     {{paste(rules_02, collapse = '\n')}}
 
+    The debriefing questions of rule 5 are shown in Czech: \"Účastnil/a jste
+    se již před dneškem experimentu, ve kterém jste předpovídal/a reakce na
+    potraviny nebo léky?\" (*Ano* / *Ne*) and \"Věděl/a jste nebo tušil/a,
+    co tato studie zkoumala? Pokud ano, popište to.\" Both are compulsory: the
+    screen cannot be left before the first is answered and the second holds
+    text.
+
     The rules define three nested analysis sets: the **Full sample** (after
     rules 1–3), the **Learned set** (after rules 1–4) and the **Naive
     set** (after rules 1–5). The Naive set is the primary analysis set and
@@ -878,35 +941,54 @@ fba_allergy_online_02 <- preregr::prereg_specify(
   # Preprocessing and quality control during analyses
   AP4 = prereg_text("
     The JATOS study results are imported, validated and anonymised with the
-    `catlasr` R package. Validation (`validate_fba_rawdata()`) must pass
-    before any analysis. The exclusion rules of AP1 are recorded in the
-    provenance record of the data set with the `record_exclusion()` function,
-    in the order they are applied. The learning check of rule 4 is computed
-    with `test_learning(alpha = 0.10)` and `screen_learning(rule = \"any\")`.
-    Test trials are scored with `score_blocking()`, which signs every answered
-    trial by whether its choice is consistent with blocking, and the indices of
-    M12 are computed per participant with `index_blocking()`: BI~2~ on the
-    first test block, BI~3~ over all test blocks, and both per test block
-    (`by_block = TRUE`) for the exploratory analyses. The indices are not
+    `catlasr` R package (PD8), and downloaded with `pull_jatos_batches()`.
+    During the experiment, every trial is streamed to JATOS upon its end and, at
+    the end of a run, the complete jsPsych data are also uploaded as the result
+    file `jspsych-data.json` (`result_file = \"jspsych-data.json\"`). For every
+    study result (i.e., run), the result file is read where it exists and the
+    streamed data only where it does not (unfinished runs, failed uploads) or
+    cannot be parsed. The two are never combined and the source of every study
+    result is recorded (as `data_source`) and reported. Before any
+    exclusion, the JATOS identifiers are replaced by random six-digit
+    participant IDs (via `update_id_key()`), whose key is kept in a private
+    folder. The e-mail addresses are kept apart from the responses (M4.5).
+
+    Data bundle validation (via `validate_fba_rawdata()`) must pass before any
+    analysis. The exclusion rules of AP1 are recorded in the provenance record
+    of the data set with the `record_exclusion()` function, in the order they
+    are applied. The learning check of rule 4 is computed with
+    `test_learning(alpha = 0.10)` and `screen_learning(rule = \"any\")`. For
+    rule 5, `write_debrief_coding()` writes a coding file that contains only the
+    participant IDs and the debriefing answers, and `read_debrief_coding()`
+    reads the codes back; the data import does not proceed until every answer is
+    coded. Test trials are scored with `score_blocking()`, which signs every
+    answered trial by whether its choice is consistent with blocking, and the
+    indices of M12 are computed per participant with `index_blocking()`: BI~2~
+    on the first test block, BI~3~ over all test blocks, and both per test
+    block (`by_block = TRUE`) for the exploratory analyses. The indices are not
     screened for outliers, transformed or winsorised.
   "),
 
   # Missing data
   AP5 = prereg_text("
-    **Definition.** Learning and test trials end without a response after 60
-    seconds. Such timed-out trials have no response and enter neither the
-    learning check (rule 4 of AP1) nor the indices, which average over
-    answered trials only. A participant's BI~2~ is missing if every trial of
-    the first test block timed out, and their BI~3~ if a test pair has no
-    answered trial. Both debriefing questions, upon which prior knowledge of
-    the design is established, are compulsory.
+    **Definition.** A learning trial without a response ends after 60 seconds,
+    and so does a test trial in which the choice and the confidence rating are
+    not both given. Timed-out trials have no response and enter neither the
+    learning check (rule 4 of AP1) nor the calculation of the blocking indices,
+    which average over answered trials only. A participant's BI~2~ is missing
+    if every trial of the first test block timed out and their BI~3~ if a given
+    test pair has no answered trial. Both debriefing questions, upon which
+    prior knowledge of the design is established, are compulsory, but the
+    debriefing screen ends after 180 seconds. A participant whose debriefing
+    timed out or was not reached is excluded from the Naive set by rule 5 of
+    AP1.
 
     **Handling.** A participant whose BI~2~ is missing is left out of the test
     of H1, and a participant whose BI~3~ is missing is left out of the test of
     H2 (case-wise deletion per analysis). Missing data are not imputed.
 
     **Missingness mechanism.** Whether trials are missing at random is not
-    tested; the number of timed-out trials and of participants left out is
+    tested. The number of timed-out trials and of participants left out is
     reported.
   "),
 
@@ -923,22 +1005,24 @@ fba_allergy_online_02 <- preregr::prereg_specify(
     exclusion rule; the age and sex of every analysis set, in aggregate only;
     the duration of the run. For the learning stages: the accuracy per stage and
     block, by cue type (learning curves). For each index and analysis set: the
-    mean, standard deviation and 90% confidence interval, and *d*~z~ (mean
-    divided by standard deviation) with its exact 90% confidence interval,
-    obtained by inverting the noncentral *t* distribution. 90% CIs are selected
-    instead of their more typical 95% counterparts because the former align
-    better with the one-sided test applied to the data. Finally, per-block means
-    of both indices are plotted across the six test blocks.
+    mean and standard deviation (`aggregate_blocking()`), the 90% confidence
+    interval of the mean, and *d*~z~ (mean divided by standard deviation) with
+    its exact 90% confidence interval, obtained by inverting the noncentral *t*
+    distribution. 90% CIs are selected instead of their more typical 95%
+    counterparts because the former align better with the one-sided test applied
+    to the data. Finally, per-block means of both indices are plotted across the
+    six test blocks.
   "),
 
   # Statistical models
   AP8 = prereg_text("
-    **H1.** One-sided one-sample *t*-test of the per-participant BI~2~ against
-    zero (alternative: mean greater than zero), in the Naive set, at each look
-    of M3.3. At look 2, the test uses all participants of the Naive set (looks 1
-    and 2 together) and the critical value of the two-look design, computed with
-    `rpact::getAnalysisResults()` from the stage-wise sample sizes, means and
-    standard deviations (*t*-based, version {{version_rpact}} at registration).
+    **H1.** One-sided one-sample *t*-test of the per-participant BI~2~
+    (`index_blocking()`, AP4) against zero (alternative: mean greater than
+    zero), in the Naive set, at each look of M3.3. At look 2, the test uses all
+    participants of the Naive set (looks 1 and 2 together) and the critical
+    value of the two-look design, computed with `rpact::getAnalysisResults()`
+    from the stage-wise sample sizes, means and standard deviations (*t*-based,
+    version {{version_rpact}} at registration).
 
     **H2.** The same test of the per-participant BI~3~, at the same looks and
     boundaries.
@@ -1042,9 +1126,11 @@ fba_allergy_online_02 <- preregr::prereg_specify(
   AP12 = "Deviations from this registration are reported and justified in the manuscript."
 )
 ```
-:::
 
-::: {.callout-note collapse="true" title="R code: Other information (O) and references (R)"}
+---
+
+### Other information (O) and references (R)
+
 ```{r}
 #| label: replication-prereg-section-o
 fba_allergy_online_02 <- preregr::prereg_specify(
@@ -1057,15 +1143,21 @@ fba_allergy_online_02 <- preregr::prereg_specify(
     - Data are uploaded in full at the end of the experiment, in addition to
       trial by trial, so that a lost connection no longer loses data.
 
-    - The instructions state the expected duration, the need for a stable
-      internet connection and for a quiet environment.
+    - Test trials end after 60 seconds unless both the choice and the confidence
+      rating are given; in the pilot, they had no time limit, yet none of its
+      test trials took that long.
 
-    - The pages scale relative to the screen, for laptop, desktop and tablet
-      screens.
+    - Declining consent aborts the JATOS run, which deletes the data recorded
+      so far, and the consent screen has no time limit. In the pilot, a declined
+      run kept its data, and the consent screen ended after 120 seconds, after
+      which the experiment continued. The consent rule of AP1 is reworded and
+      applied first accordingly.
 
     - The single debriefing question about taking part in a similar experiment
-      is replaced by the two compulsory questions of rule 5 of AP1, and the rule
-      is reworded accordingly, with a coding rule for the free text.
+      is replaced by the two compulsory questions of rule 5 of AP1, and the
+      exclusion rule is reworded accordingly, with a coding rule for the free
+      text. The debriefing screen ends after 180 seconds, and a timed-out
+      debriefing excludes the participant from the Naive set.
 
     - The Naive set is the primary analysis set; in the pilot, it was the
       Learned set. The prior-knowledge exclusion removes participants who may
