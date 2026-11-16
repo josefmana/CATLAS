@@ -36,8 +36,9 @@ Institute for Psychology (ZPID).
 Sample sizes, significance thresholds and the decision tree are read from the
 design that was exported by the power analysis notebook
 (`03-replication-power.qmd`) and the exclusion rules come from the provenance
-record of the pilot's `{catlasr}` data bundle. The registration thus cannot
-drift from the analyses that justify its contents.
+record of the pilot's `{catlasr}` data bundle, apart from the two rules that
+`fba-allergy-online-02` rewords. The registration thus cannot drift from the
+analyses that justify its contents.
 :::
 
 ::: {.callout-warning title="To decide before submission"}
@@ -773,36 +774,64 @@ fba_allergy_online_02 <- preregr::prereg_specify(
 ::: {.callout-note collapse="true" title="R code: Analysis plan (AP)"}
 ```{r}
 #| label: replication-prereg-section-ap
-# Labels of the five exclusion rules, as in the feasibility notebook
+# Labels of the five exclusion rules, as in the feasibility notebook, in the
+# order they are applied in `fba-allergy-online-02`. Declining consent newly
+# deletes the run's data (starting from `catlaslab@fba-allergy-online-02`), so
+# the consent rule needs to come first; in second place it would never fire,
+# because every declined run would already count as one without jsPsych data.
 rule_labels <- c(
-  no_jspsych_data                    = "No jsPsych data",
   declined_consent                   = "Declined consent",
+  no_jspsych_data                    = "No jsPsych data",
   incomplete_run                     = "Incomplete run",
   learning_not_reliably_above_chance = "Insufficient learning",
   prior_knowledge_reported           = "Prior knowledge"
 )
 
-# The prior-knowledge rule is reworded for the two-part debriefing question of
-# fba-allergy-online-02 (catlaslab#9); the other four are the pilot's.
-# The data set script of fba-allergy-online-02 records this wording verbatim.
+# Rules 1 and 5 are reworded for `fba-allergy-online-02`: declining deletes the
+# data recorded so far and the debriefing has two parts and a time limit. Rules
+# 2 to 4 are the same as in the pilot. The data set script of
+# `fba-allergy-online-02` (`{catlasr}`, `data-raw/fba-allergy-online-02.R`)
+# records all five verbatim.
+rule_declined_consent <- prereg_text("
+  The participant declined on the informed-consent screen. Declining ends the
+  experiment and deletes the data recorded so far, so that JATOS keeps only
+  the study result, in the state ABORTED.
+")
+
 rule_prior_knowledge <- prereg_text("
   The participant answered yes to the debriefing question \"Before today,
   have you taken part in an experiment in which you predicted reactions from
-  foods or medicines?\", or their answer to the debriefing question \"Did you
+  foods or medicines?\", their answer to the debriefing question \"Did you
   know or guess what this study tested? If so, describe it.\" was coded as
-  describing blocking. An answer describes blocking if it states that learning
-  about a cue is reduced when the cue is presented together with a cue that
-  already predicts the outcome, or if it names blocking, cue competition or
-  learned (in)attention. Answers that describe only the surface of the task
+  describing blocking, or the debriefing screen timed out or was not reached.
+  An answer describes blocking if it states that learning about a cue is
+  reduced when the cue is presented together with a cue that already predicts
+  the outcome, or if it names blocking, cue competition or learned
+  (in)attention. Answers that describe only the surface of the task
   (predicting side effects, memory, attention or learning in general) do not.
   The answers are coded before any blocking index is computed.
 ")
 
-rules_02 <- write_prereg_rules(
-  rules_pilot,
-  rule_labels,
-  revised = c(prior_knowledge_reported = rule_prior_knowledge)
+revised_02 <- c(
+  declined_consent = rule_declined_consent,
+  prior_knowledge_reported = rule_prior_knowledge
 )
+
+# The pilot's records in the order of fba-allergy-online-02
+rules_pilot_02 <- rules_pilot[
+  match(names(rule_labels), purrr::map_chr(rules_pilot, "rule"))
+]
+
+rules_02 <- write_prereg_rules(
+  rules_pilot_02,
+  rule_labels,
+  revised = revised_02
+)
+
+# The wording of every rule, named by rule, saved in the export below
+rule_texts <- purrr::map_chr(rules_pilot_02, "description")
+names(rule_texts) <- names(rule_labels)
+rule_texts[names(revised_02)] <- revised_02
 
 decisions_02 <- write_prereg_decisions(design$decisions, design$thresholds)
 
@@ -818,9 +847,11 @@ fba_allergy_online_02 <- preregr::prereg_specify(
 
     **Exclusion criteria.** Participants are excluded by the following rules,
     applied in the order listed. An excluded participant is counted under the
-    first rule that removes them. Rules 1–4 are worded verbatim as in the
-    provenance record of the pilot's data, rule 5 is reworded for the new
-    debriefing question.
+    first rule that removes them. Rules 2–4 are worded verbatim as in the
+    provenance record of the pilot's data. Rule 1 is reworded because declining
+    consent now deletes the data recorded until that point and it is applied
+    first so that a declined run is not counted under rule 2. Rule 5 is reworded
+    for the new debriefing question.
 
     {{paste(rules_02, collapse = '\n')}}
 
@@ -1107,7 +1138,10 @@ if (nrow(completion) == 0L) {
 The registration is exported to the manuscript's `outputs/` folder as a PDF
 (`A1-replication-prereg.pdf`) and as a state file of the PreReg web form
 (`A1-replication-prereg-zpid.rds`). In the state file, the answers are plain
-text with the citations resolved.
+text with the citations resolved. The wording of the exclusion rules of AP1 is
+saved on its own (`A1-replication-rules.rds`), named by rule, for the analysis
+notebook of `fba-allergy-online-02` to check against the provenance record of
+the data set.
 
 ```{r}
 #| label: replication-prereg-export
@@ -1131,6 +1165,10 @@ zpid_state <- prereg_to_zpid(
   bibliography = BIB,
   csl = CSL
 )
+
+# The analysis notebook of fba-allergy-online-02 checks these with identical()
+# against the provenance record of the data set
+write_output(rule_texts, "A1-replication-rules.rds", MANUSCRIPT)
 ```
 
 # Software
