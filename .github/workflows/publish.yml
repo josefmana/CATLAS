@@ -37,7 +37,7 @@ jobs:
         with:
           # The Quarto version used locally, so that frozen results render the
           # same here
-          version: release
+          version: 1.10.19
 
       - name: Render the landing page
         run: quarto render site
