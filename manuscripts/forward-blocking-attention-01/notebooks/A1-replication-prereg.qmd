@@ -286,10 +286,7 @@ fba_allergy_online_02 <- preregr::prereg_specify(
   # Other information: standard lab practices
   PD8 = prereg_text("
     **Ethics.** The study is submitted to the ethics committee of the Institute
-    of Psychology of the Czech Academy of Sciences as a new application, since
-    the approval of the pilot does not extend to it. It undergoes full review
-    because the optional e-mail address stays linked to the responses until the
-    data are downloaded.
+    of Psychology of the Czech Academy of Sciences.
 
     **Software.** The `catlasr` R package (version {{version_catlasr}}, tag
     `v{{version_catlasr}}` of its repository) implements the import and
