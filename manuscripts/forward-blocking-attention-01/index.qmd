@@ -17,7 +17,26 @@ authors:
     roles: [conceptualization, data curation]
     corresponding: true
 abstract: >
-  The abstract will go here ...
+  Forward blocking, the attenuated learning about a cue presented together
+  with another cue that already predicts the outcome, is a cornerstone
+  phenomenon of associative learning. In the three-stage design of
+  @lepelley2007, the associative theories cannot explain it without an
+  attentional mechanism, yet either of two such mechanisms, rapid attentional
+  shifts or attentional competition, suffices to explain it, and no experiment
+  has yet decided between them. @paskewitz2020 derived a design that could.
+  Because blocking may be less reliable than its standing suggests, we first
+  test whether the three-stage result of @beesley2011 replicates online.
+  Experiment 1 is a pre-registered online replication in which participants
+  complete a within-participant three-stage allergist task. Blocking is tested
+  by one-sided one-sample *t*-tests of the original confidence-weighted index,
+  deciding the replication, and of a choice-based index, selecting the dependent
+  variable for the extension. The sample size follows from a power analysis
+  informed by a pilot study, within a two-look group-sequential design whose
+  second look adds participants only if neither index detects blocking at the
+  first. Experiment 2 will implement the design of @paskewitz2020 to adjudicate
+  between the attentional shift and attentional competition accounts and
+  Experiment 3 will test its conclusions in a formally identical design
+  with a different task.
 keywords:
   - Attention
   - Learning

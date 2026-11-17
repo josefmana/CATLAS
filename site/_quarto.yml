@@ -1,0 +1,23 @@
+# The CATLAS website: this landing page, with every manuscript of
+# `manuscripts/` rendered into a subfolder of the site by
+# `.github/workflows/publish.yml`.
+project:
+  type: website
+
+website:
+  title: "CATLAS"
+  description: "Conditioning As a Theory of Learned Attention, Semantics and more"
+  site-url: "https://josefmana.github.io/CATLAS/"
+  repo-url: "https://github.com/josefmana/CATLAS"
+  navbar:
+    right:
+      - icon: github
+        href: https://github.com/josefmana/CATLAS
+        aria-label: GitHub repository
+  page-footer:
+    left: "Josef Mana, Institute of Psychology of the Czech Academy of Sciences"
+    right: "Text and figures CC BY 4.0, code MIT"
+
+format:
+  html:
+    theme: cosmo

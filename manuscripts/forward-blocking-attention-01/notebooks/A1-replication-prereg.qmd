@@ -36,7 +36,8 @@ Institute for Psychology (ZPID).
 Sample sizes, significance thresholds and the decision tree are read from the
 design that was exported by the power analysis notebook
 (`03-replication-power.qmd`) and the exclusion rules come from the provenance
-record of the pilot's `{catlasr}` data bundle, apart from the two rules that
+record of the pilot's `{catlasr}` data bundle, as exported by the feasibility
+notebook (`02-feasibility-study.qmd`), apart from the two rules that
 `fba-allergy-online-02` rewords. The registration thus cannot drift from the
 analyses that justify its contents.
 :::
@@ -77,17 +78,14 @@ source(file.path(REPO, "common", "R", "utils-prereg.R"))
 source(file.path(REPO, "common", "R", "prereg-prpquant-v4.R"))
 source(file.path(REPO, "manuscripts", MANUSCRIPT, "R", "03-replication-power.R"))
 
-# The design exported by the power analysis notebook, and the pilot estimates
-# and attrition funnel exported by the feasibility notebook
+# The design exported by the power analysis notebook, and the pilot estimates,
+# attrition funnel and exclusion rules exported by the feasibility notebook. The
+# rules are worded verbatim as in the provenance record of the pilot's naive
+# data bundle.
 design <- read_output("03-replication-design.rds", MANUSCRIPT)
 estimates <- read_output("02-feasibility-estimates.rds", MANUSCRIPT)
 funnel <- read_output("02-feasibility-funnel.rds", MANUSCRIPT)
-
-# The exclusion rules, verbatim from the provenance record of the pilot's naive
-# data bundle
-rules_pilot <- catlasr::provenance(
-  catlasr::read_private_rds("fba-allergy-online-01/naive.rds")
-)$exclusions
+rules_pilot <- read_output("02-feasibility-rules.rds", MANUSCRIPT)
 
 # The rules are messaged by {preregr} only when an item fails validation
 preregr::opts$set(silent = TRUE)

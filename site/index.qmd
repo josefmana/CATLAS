@@ -1,0 +1,31 @@
+---
+title: "CATLAS"
+subtitle: "**C**onditioning **A**s a **T**heory of **L**earned **A**ttention, **S**emantics and more"
+---
+
+CATLAS is a research program on associative learning theories of attention
+and schema induction. Its aim is to develop and evaluate theoretical and
+computational accounts of how learned associations shape attentional
+allocation and the acquisition of structured knowledge.
+
+This site publishes the manuscripts of the program together with the analysis
+notebooks behind them. Every page is rendered from the
+[CATLAS repository](https://github.com/josefmana/CATLAS), where its source
+lives.
+
+## Manuscripts
+
+**[Disentangling Attentional Shift and Attentional Competition Accounts of
+Associative Blocking](forward-blocking-attention-01/index.html)**\
+Replication and extension of Beesley & Le Pelley
+([2011](https://doi.org/10.1037/a0019526)). In preparation; the
+pre-registration of Experiment 1 is among its notebooks.
+
+## Related repositories
+
+- [`{catlasr}`](https://josefmana.github.io/catlasr/): the R package for
+  importing, validating, scoring and sharing the data of CATLAS studies.
+- [`catlaslab`](https://github.com/josefmana/catlaslab): the experiments
+  (jsPsych on JATOS), with every deployed build attached to a release.
+- [`{mathpsychr}`](https://github.com/josefmana/mathpsychr): theory-agnostic
+  mathematical psychology machinery in R.

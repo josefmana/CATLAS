@@ -1,0 +1,67 @@
+# Builds the CATLAS website and deploys it to GitHub Pages: the landing page
+# in `site/` and every manuscript in `manuscripts/` are rendered into a
+# subfolder of the site. Manuscripts are rendered from their frozen results
+# (`_freeze/`), so neither R nor the private data are needed here. If a notebook
+# changed since it was last rendered locally, Quarto tries to run it and the build
+# fails: render it locally and commit its `_freeze/` with it!
+
+name: Publish website
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "manuscripts/**"
+      - "common/references.bib"
+      - "common/csl/**"
+      - ".github/workflows/publish.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          # The Quarto version used locally, so that frozen results render the
+          # same here
+          version: release
+
+      - name: Render the landing page
+        run: quarto render site
+
+      - name: Render the manuscripts from their frozen results
+        run: |
+          for dir in manuscripts/*/; do
+            [ -f "${dir}_quarto.yml" ] || continue
+            name=$(basename "$dir")
+            # HTML only; the PDF is not built here, so its link is hidden
+            quarto render "$dir" --to html -M format-links:false
+            cp -R "${dir}_manuscript" "site/_site/${name}"
+          done
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site/_site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

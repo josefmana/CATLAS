@@ -2,5 +2,5 @@
 .DS_Store
 Thumbs.db
 
-# Intermediate results
-*/outputs
+# Intermediate results; a manuscript's .gitignore lists the ones to track
+*/outputs/*

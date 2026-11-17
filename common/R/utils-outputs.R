@@ -1,8 +1,9 @@
 #' Folder of the outputs of a manuscript
 #'
 #' Notebooks save the results that later notebooks need to their manuscript's
-#' `outputs/` folder, which is gitignored. The repository root is found from
-#' `CATLAS.Rproj`, so the path does not depend on where rendering starts.
+#' `outputs/` folder (see [write_output()] for which of them git tracks). The
+#' repository root is found from `CATLAS.Rproj`, so the path does not depend on
+#' where rendering starts.
 #'
 #' @param manuscript Character(1). The manuscript folder within `manuscripts/`,
 #'   e.g. `"forward-blocking-attention-01"`.
@@ -27,8 +28,9 @@ output_dir <- function(manuscript) {
 
 #' Save an output for later notebooks of the same manuscript
 #'
-#' The folder is not tracked by git, but it is shared with anyone who renders
-#' the manuscript, so it holds aggregates only, never participant-level data.
+#' Files in the folder are tracked by git only where the manuscript's
+#' `.gitignore` lists them, so that later notebooks render from a fresh clone.
+#' The folder thus holds aggregates only, never participant-level data.
 #'
 #' @param object The R object to save.
 #' @param file Character(1). File name, starting with the number of the

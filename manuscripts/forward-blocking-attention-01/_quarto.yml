@@ -22,8 +22,11 @@ format:
   pdf:
     documentclass: article
 
+# Notebooks are re-executed only when their source changes. The results are
+# kept in `_freeze/` and tracked by git, so that the website is built from them
+# without R or the private data. Render a changed notebook before committing it.
 execute:
-  freeze: false
+  freeze: auto
 
 bibliography: ../../common/references.bib
 csl: ../../common/csl/apa.csl

@@ -711,14 +711,23 @@ The table below lists the effect size estimates of all analysis sets and their
 tbl_power(estimates)
 ```
 
-::: {.callout-note collapse="true" title="R code: Export for the power analysis"}
+::: {.callout-note collapse="true" title="R code: Exports for the power analysis and the pre-registration"}
 ```{r}
 #| label: feasibility-export
 # The power analysis notebook (`03-replication-power.qmd`) reads the pilot
 # estimates and the attrition funnel from the manuscript's `outputs/` folder,
-# which git ignores. Both are aggregates and contain no participant identifiers.
+# and the pre-registration (`A1-replication-prereg.qmd`) reads the wording of
+# the pilot's exclusion rules. All three are aggregates without participant
+# identifiers: of the exclusion records, only the rule and its description are
+# exported. They are tracked by git, so that both notebooks render without the
+# private folder.
 write_output(estimates, "02-feasibility-estimates.rds", "forward-blocking-attention-01")
 write_output(funnel, "02-feasibility-funnel.rds", "forward-blocking-attention-01")
+write_output(
+  purrr::map(prov$exclusions, \(x) x[c("rule", "description")]),
+  "02-feasibility-rules.rds",
+  "forward-blocking-attention-01"
+)
 ```
 :::
 

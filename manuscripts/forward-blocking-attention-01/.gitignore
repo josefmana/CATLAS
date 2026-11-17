@@ -22,7 +22,6 @@ renv/python/
 
 # Quarto execution cache
 *_cache/
-*_freeze/
 
 # LaTeX intermediates
 *.aux
@@ -43,3 +42,9 @@ Thumbs.db
 *~
 *.tmp
 *.swp
+
+# Aggregate outputs that later notebooks read (see README.md)
+!/outputs/02-feasibility-estimates.rds
+!/outputs/02-feasibility-funnel.rds
+!/outputs/02-feasibility-rules.rds
+!/outputs/03-replication-design.rds
